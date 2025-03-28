@@ -28,25 +28,21 @@ def quadrupole(x, y,z,num_particles):
     return np.sqrt(f0**2+f1**2+f2**2+f_1**2+f_2**2) / num_particles
 #dissociation functions of an array of coordinates  
 def dissociation(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
-    x_dmc=np.sum(x_dm)/len(x_dm)
-    x_gc=np.sum(x_g)/len(x_g)
-    x_dm-=x_dmc
-    x_g-=x_gc
-    y_dmc=np.sum(y_dm)/len(y_dm)
-    y_dm-=y_dmc
-    y_gc=np.sum(y_g)/len(y_g)
-    y_g-=y_gc
-    z_dmc=np.sum(z_dm)/len(z_dm)
-    z_dm-=z_dmc
-    z_gc=np.sum(z_g)/len(z_g) 
-    z_g-=z_gc
-    n_dm = len(x_dm)
-    n_g = len(x_g)
-    r_mean_dm = np.average(radial_distance(x_dm, y_dm,z_dm))
-    r_mean_g = np.average(radial_distance(x_g, y_g,z_g))
+    xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
+    xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
+    xdm=np.array(x_dm-xdmc)   
+    ydm=np.array(y_dm-ydmc)
+    zdm=np.array(z_dm-zdmc)
+    xg=np.array(x_g-xgc)
+    yg=np.array(y_g-ygc)
+    zg=np.array(z_g-zgc)
+    n_dm = len(xdm)
+    n_g = len(xg)
+    r_mean_dm = np.average(radial_distance(xdm, ydm,zdm))
+    r_mean_g = np.average(radial_distance(xg, yg,zg))
     r_max = max(r_mean_dm, r_mean_g)
-    q_dm = quadrupole(x_dm, y_dm,z_dm, n_dm)
-    q_g = quadrupole(x_g, y_g, z_g,n_g)
+    q_dm = quadrupole(xdm, ydm,zdm, n_dm)
+    q_g = quadrupole(xg, yg, zg,n_g)
     return np.sqrt(4*np.pi/5) * (q_dm - q_g) / r_max
 #offset functions of an array of coordinates
 def offset(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
@@ -60,9 +56,18 @@ def offset(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
 #analyse the swift galaxy object
 def analyse(sgi,i,x_dm,y_dm,z_dm,x_g,y_g,z_g):#swift galaxy object and index
       x_dm[i]=np.array(sgi.dark_matter.cartesian_coordinates.x)
+     
       y_dm[i]=np.array(sgi.dark_matter.cartesian_coordinates.y)
       z_dm[i]=np.array(sgi.dark_matter.cartesian_coordinates
       .z)
       x_g[i]=np.array(sgi.gas.cartesian_coordinates.x)
       y_g[i]=np.array(sgi.gas.cartesian_coordinates.y)
       z_g[i]=np.array(sgi.gas.cartesian_coordinates.z)
+
+#Calculate the center of mass of the dark matter and gas particles
+def center_of_mass(x,y,z):#R_m=Mp_dm/Mp_g
+    xc=np.average(np.array(x))
+    yc=np.average(np.array(y))
+    zc=np.average(np.array(z))
+ 
+    return xc,yc,zc
