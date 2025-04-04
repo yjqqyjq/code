@@ -54,6 +54,13 @@ def offset(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
     z_gc=np.sum(z_g)/len(z_g)
     return radial_distance(x_dmc-x_gc, y_dmc-y_gc, z_dmc-z_gc)
 #analyse the swift galaxy object
+def offsetb(x_dm, y_dm,z_dm ,x_g, y_g, z_g,x_stars,y_stars,z_stars,Mg,Ms):
+    xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
+    xbc=(np.sum(x_g)*Mg+np.sum(x_stars)*Ms)/(Mg*len(x_g)+Ms*len(x_stars))
+    ybc=(np.sum(y_g)*Mg+np.sum(y_stars)*Ms)/(Mg*len(x_g)+Ms*len(x_stars))
+    zbc=(np.sum(z_g)*Mg+np.sum(z_stars)*Ms)/(Mg*len(x_g)+Ms*len(x_stars))
+  
+    return radial_distance(xdmc-xbc,ydmc-ybc,zdmc-zbc)
 def analyse(sgi,i,x_dm,y_dm,z_dm,x_g,y_g,z_g):#swift galaxy object and index
       x_dm[i]=np.array(sgi.dark_matter.cartesian_coordinates.x)
      
