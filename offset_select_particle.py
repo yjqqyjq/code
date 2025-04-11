@@ -76,8 +76,8 @@ for i in range(0, len(mainhalo_id)-1):
    
 '''   
     
-Offsets_out=np.zeros(len(mainhalo_id))
-
+Offsets=np.zeros(len(mainhalo_id))
+CoMr=np.zeros(len(mainhalo_id))
 #get the coordinates of the dark matter and gas particles
 for i in range (0,len(mainhalo_id)):
     
@@ -89,29 +89,38 @@ for i in range (0,len(mainhalo_id)):
     sgi=sg.SWIFTGalaxy(dir+"snapshots/flamingo_0008.hdf5",#"colibre_with_SOAP_membership_0127.hdf5",
                    sg.Standalone(centre=centre,velocity_centre=np.array([0,0,0])*
                                 unyt.km/unyt.s,spatial_offsets=np.array([[-r,r],[-r,r],[-r,r]])*unyt.Mpc,extra_mask=None))
-    mask=sg.MaskCollection(dark_matter=(sgi.dark_matter.spherical_coordinates.r<0.1*r),
-                        gas=(sgi.gas.spherical_coordinates.r<0.1*r)*(sgi.gas.temperatures>0),
+    mask=sg.MaskCollection(dark_matter=(sgi.dark_matter.spherical_coordinates.r<r),
+                        gas=(sgi.gas.spherical_coordinates.r<r)*(sgi.gas.temperatures>0),
                         stars=(sgi.stars.spherical_coordinates.r<r))
     sgi.mask_particles(mask)
     
 
    
-    x_dm=np.array(sgi.dark_matter.cartesian_coordinates.x)
-    y_dm=np.array(sgi.dark_matter.cartesian_coordinates.y)
-    z_dm=np.array(sgi.dark_matter.cartesian_coordinates.z)
+#    x_dm=np.array(sgi.dark_matter.cartesian_coordinates.x)
+#    y_dm=np.array(sgi.dark_matter.cartesian_coordinates.y)
+#    z_dm=np.array(sgi.dark_matter.cartesian_coordinates.z)
     x_g=np.array(sgi.gas.cartesian_coordinates.x)
     y_g=np.array(sgi.gas.cartesian_coordinates.y)
     z_g=np.array(sgi.gas.cartesian_coordinates.z)
     x_stars=np.array(sgi.stars.cartesian_coordinates.x)
-    y_stars=np.array(sgi.stars.cartesian_coordinates.y)
-    z_stars=np.array(sgi.stars.cartesian_coordinates.z)
-    Offsets_out[i]=fn.offset(x_dm,y_dm,z_dm,x_g,y_g,z_g)/float(r)
+#    y_stars=np.array(sgi.stars.cartesian_coordinates.y)
+#    z_stars=np.array(sgi.stars.cartesian_coordinates.z)
+    xlum=np.array(sgi.gas.xray_luminosities.erosita_high+sgi.gas.xray_luminosities.erosita_low+sgi.gas.xray_luminosities.ROSAT)
+    print(len(xlum[xlum==0])/len(xlum))
+#    xlc=x_g[xlum==np.max(xlum)]
+#    ylc=y_g[xlum==np.max(xlum)]
+#    zlc=z_g[xlum==np.max(xlum)]
+#    Rho_g=np.array(sgi.gas.densities)
+    
+#    Offset=fn.radial_distance(xlc,ylc,zlc)/float(r)
+#    Offsets[i]=fn.offset_lum(x_g,y_g,z_g,Rho_g)/float(r)
+#    print(Offsets[i])
 
   
 
 
 
-
+'''
   
 #calculate the offset and make plots
 S=np.zeros(len(mainhalo_id))
@@ -121,11 +130,7 @@ Center_diff=np.zeros(len(mainhalo_id))
 #for i in range(0,len(mainhalo_id)):
     
 #    id=mainhalo_id[i]
-#    S[i]=fn.dissociation(x_dm[i],y_dm[i],z_dm[i],x_g[i],y_g[i],z_g[i])
-#    Offsets[i]=fn.offset(x_dm[i],y_dm[i],z_dm[i],x_g[i],y_g[i],z_g[i])/float(radius[id])
-#    Offsets[i]=fn.offsetb(x_dm[i],y_dm[i],z_dm[i],x_g[i],y_g[i],z_g[i],x_stars[i],y_stars[i],z_stars[i],m_pg,m_ps)/float(radius[id])   
-#    Offsets_s[i]=fn.offset(x_dm[i],y_dm[i],z_dm[i],x_stars[i],y_stars[i],z_stars[i])/float(radius[id])
-'''    
+   
 
     x_cdm,y_cdm,z_cdm=fn.center_of_mass(x_dm[i],y_dm[i],z_dm[i])
     
@@ -137,47 +142,30 @@ Center_diff=np.zeros(len(mainhalo_id))
     z_c=(z_cdm*m_pdm*len(z_dm[i])+z_cg*m_pg*len(z_g[i])+z_cs*m_ps*len(z_stars[i]))/(m_pdm*len(z_dm[i])+m_pg*len(z_g[i])+m_ps*len(z_stars[i]))
     
     Center_diff[i]=fn.radial_distance(x_c,y_c,z_c)/float(radius[id])
-'''
 
+'''
 import matplotlib.pyplot as plt
 title="M>1e14"
 boxused="/Flamingo/L0200N0360/"
-np.savetxt("/home/jyang/data/"+boxused+title+"_offset_in.txt",np.array([Offsets_out]),comments
-="Select all the particles inside 0.1rvir")
+np.savetxt("/home/jyang/data/"+boxused+title+"_offset_lum.txt",np.array([Offsets]),comments
+="Select all the particles inside rvir, calculate the offset of the xray luminosity and the mbp acording to 2212.10107v1.")
 
 #np.savetxt("/home/jyang/data/Flamingo/L0200N0360/M=5_to_6e12.txt",np.array([S,Offsets,Center_diff]))
-'''
-fig = plt.figure()
-ax=plt.subplot(1,1,1)
-h=ax.hist(S, bins=10)
-ax.set_xlabel("S")
-ax.set_ylabel("Counts")
-ax.set_title(title)
-#fig.savefig("/home/jyang/plot/Flamingo/L0200N0360/S_small.png")
-fig.savefig("/home/jyang/plot/"+boxused+"/S_hot.png")
-plt.close()
 
-'''
+
 
 
 fig = plt.figure()
 ax=plt.subplot(1,1,1)
-h=ax.hist(Offsets_out, bins=10)
-ax.set_xlabel("Offsets_in")
+h=ax.hist(Offsets, bins=10)
+ax.set_xlabel("Offsets_lum")
 ax.set_ylabel("Counts")
 ax.set_title(title)
 #fig.savefig("/home/jyang/plot/Flamingo/L0200N0360/Offset_small.png")
-fig.savefig("/home/jyang/plot/"+boxused+"/Offset_in.png")
+fig.savefig("/home/jyang/plot/"+boxused+"/Offset_lum.png")
 plt.close()
+
 '''
-fig = plt.figure()
-ax=plt.subplot(1,1,1)
-h=ax.hist(Center_diff, bins=10)
-ax.set_xlabel("Center_diff")
-ax.set_ylabel("Counts")
-ax.set_title(title)
-fig.savefig("/home/jyang/plot/"+boxused+"/Centerdiff.png")
-plt.close()
 
 fig = plt.figure()
 ax=plt.subplot(1,1,1)

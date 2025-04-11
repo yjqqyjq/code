@@ -53,6 +53,12 @@ def offset(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
     z_dmc=np.sum(z_dm)/len(z_dm)
     z_gc=np.sum(z_g)/len(z_g)
     return radial_distance(x_dmc-x_gc, y_dmc-y_gc, z_dmc-z_gc)
+def offset_lum(x_g, y_g, z_g,rho_g):
+    
+    x_gc=np.sum(x_g*rho_g)/np.sum(rho_g)
+    y_gc=np.sum(y_g*rho_g)/np.sum(rho_g)
+    z_gc=np.sum(z_g*rho_g)/np.sum(rho_g)
+    return radial_distance(x_gc,y_gc,z_gc)
 #analyse the swift galaxy object
 def offsetb(x_dm, y_dm,z_dm ,x_g, y_g, z_g,x_stars,y_stars,z_stars,Mg,Ms):
     xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
