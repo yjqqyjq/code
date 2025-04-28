@@ -16,18 +16,8 @@ x_g=[]
 y_g=[]
 z_g=[]
 n_files=100
-'''
-f0=h5py.File(path+'snapshot_000.hdf5','r')
-Coord_g0=f0['PartType0']["Coordinates"]
-Coord_dm0=f0['PartType1']["Coordinates"]
-xyz_dm0=np.array(Coord_dm0).T
-xyz_g0=np.array(Coord_g0).T
-f0.close()
-x_dm0=xyz_dm0[0]
-x_g0=xyz_g0[0]
-mask_dm=np.ones(len(x_dm0))#(x_dm0<(np.max(x_dm0)+np.min(x_dm0))/2)
-mask_g=np.ones(len(x_g0))#(x_g0<(np.max(x_g0)+np.min(x_g0))/2)
-'''
+
+
 for i in range(0,n_files):
     if i<10:
       f=h5py.File(path+'snapshot_00'+str(i)+'.hdf5','r')

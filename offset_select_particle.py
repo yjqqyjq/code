@@ -6,9 +6,11 @@ import swiftgalaxy as sg
 import functions as fn
 from swiftgalaxy import SWIFTGalaxy, MaskCollection
 from swiftsimio import cosmo_array
+import tqdm
 #load the data Flamingo
 
-
+/mnt/su3ctm/ludlow/Flamingo/L1000N1800/HYDRO_FIDUCIAL_HiResDM/SOAP-HBT/
+/mnt/su3ctm/ludlow/Flamingo/L1000N0900/HYDRO_FIDUCIAL/SOAP-HBT/halo_properties_0077.hdf5
 dir="/mnt/su3-pro/flamingo/L0200N0360/"
 
 data_h=load(dir+"VR/halos_0008.properties.0")
@@ -79,40 +81,50 @@ for i in range(0, len(mainhalo_id)-1):
 Offsets=np.zeros(len(mainhalo_id))
 CoMr=np.zeros(len(mainhalo_id))
 #get the coordinates of the dark matter and gas particles
-for i in range (0,len(mainhalo_id)):
+for i in tqdm.tqdm(range(0,len(mainhalo_id))):
     
     id=mainhalo_id[i]
     
     centre=np.array([xc[id],yc[id],zc[id]])*unyt.Mpc
     r=radius[id]
-
-    sgi=sg.SWIFTGalaxy(dir+"snapshots/flamingo_0008.hdf5",#"colibre_with_SOAP_membership_0127.hdf5",
-                   sg.Standalone(centre=centre,velocity_centre=np.array([0,0,0])*
-                                unyt.km/unyt.s,spatial_offsets=np.array([[-r,r],[-r,r],[-r,r]])*unyt.Mpc,extra_mask=None))
+#"snapshots/flamingo_0008.hdf5",#"colibre_with_SOAP_membership_0127.hdf5",
+    sgi=sg.SWIFTGalaxy(dir+"halo_properties_0077.hdf5",
+                    sg.SOAP(dir+"halo_properties_0077.hdf5",soap_index=0,extra_mask=None))
+#                   sg.Standalone(centre=centre,velocity_centre=np.array([0,0,0])*
+#                                unyt.km/unyt.s,spatial_offsets=np.array([[-r,r],[-r,r],[-r,r]])*unyt.Mpc,extra_mask=None))
     mask=sg.MaskCollection(dark_matter=(sgi.dark_matter.spherical_coordinates.r<r),
-                        gas=(sgi.gas.spherical_coordinates.r<r)*(sgi.gas.temperatures>0),
+                        gas=(sgi.gas.spherical_coordinates.r<0.1*r)*(sgi.gas.temperatures>0),
                         stars=(sgi.stars.spherical_coordinates.r<r))
     sgi.mask_particles(mask)
     
 
    
-#    x_dm=np.array(sgi.dark_matter.cartesian_coordinates.x)
-#    y_dm=np.array(sgi.dark_matter.cartesian_coordinates.y)
-#    z_dm=np.array(sgi.dark_matter.cartesian_coordinates.z)
+    x_dm=np.array(sgi.dark_matter.cartesian_coordinates.x)
+    y_dm=np.array(sgi.dark_matter.cartesian_coordinates.y)
+    z_dm=np.array(sgi.dark_matter.cartesian_coordinates.z)
     x_g=np.array(sgi.gas.cartesian_coordinates.x)
     y_g=np.array(sgi.gas.cartesian_coordinates.y)
     z_g=np.array(sgi.gas.cartesian_coordinates.z)
-    x_stars=np.array(sgi.stars.cartesian_coordinates.x)
+#    x_stars=np.array(sgi.stars.cartesian_coordinates.x)
 #    y_stars=np.array(sgi.stars.cartesian_coordinates.y)
 #    z_stars=np.array(sgi.stars.cartesian_coordinates.z)
-    xlum=np.array(sgi.gas.xray_luminosities.erosita_high+sgi.gas.xray_luminosities.erosita_low+sgi.gas.xray_luminosities.ROSAT)
-    print(len(xlum[xlum==0])/len(xlum))
+#    xlum=np.array(sgi.gas.xray_luminosities.erosita_high+sgi.gas.xray_luminosities.erosita_low+sgi.gas.xray_luminosities.ROSAT)
+#    print(len(xlum[xlum==0])/len(xlum))
 #    xlc=x_g[xlum==np.max(xlum)]
-#    ylc=y_g[xlum==np.max(xlum)]
+#    ylc=y_g[xlum==np.max(xlum)]/float(r)
 #    zlc=z_g[xlum==np.max(xlum)]
 #    Rho_g=np.array(sgi.gas.densities)
     
-#    Offset=fn.radial_distance(xlc,ylc,zlc)/float(r)
+##    h=np.histogram2d(x_g,y_g,bins=1000,weights=xlum)
+#    print(h[1])
+#    lum=np.reshape(h[0],shape=1000*1000)
+#    index=np.argmax(lum)
+#    xlc=h[1][index//1000]+0.0005
+#    ylc=h[2][index%1000]+0.0005
+#    print(xlc,ylc)
+    
+    Offsets[i]=fn.offset(x_dm,y_dm,z_dm,x_g,y_g,z_g)/float(r)/10
+#    print(Offsets[i])
 #    Offsets[i]=fn.offset_lum(x_g,y_g,z_g,Rho_g)/float(r)
 #    print(Offsets[i])
 
@@ -147,8 +159,8 @@ Center_diff=np.zeros(len(mainhalo_id))
 import matplotlib.pyplot as plt
 title="M>1e14"
 boxused="/Flamingo/L0200N0360/"
-np.savetxt("/home/jyang/data/"+boxused+title+"_offset_lum.txt",np.array([Offsets]),comments
-="Select all the particles inside rvir, calculate the offset of the xray luminosity and the mbp acording to 2212.10107v1.")
+np.savetxt("/home/jyang/data/"+boxused+title+"_offset_in.txt",np.array([Offsets]), header="Select all the gas particles inside 0.1 rvir,calculate the offset between these gas and all the DM normorized by 0.1rvir"
+            , comments='#' )
 
 #np.savetxt("/home/jyang/data/Flamingo/L0200N0360/M=5_to_6e12.txt",np.array([S,Offsets,Center_diff]))
 
@@ -157,12 +169,12 @@ np.savetxt("/home/jyang/data/"+boxused+title+"_offset_lum.txt",np.array([Offsets
 
 fig = plt.figure()
 ax=plt.subplot(1,1,1)
-h=ax.hist(Offsets, bins=10)
-ax.set_xlabel("Offsets_lum")
+h=ax.hist(Offsets, bins=20)
+ax.set_xlabel("Offsets")
 ax.set_ylabel("Counts")
 ax.set_title(title)
 #fig.savefig("/home/jyang/plot/Flamingo/L0200N0360/Offset_small.png")
-fig.savefig("/home/jyang/plot/"+boxused+"/Offset_lum.png")
+fig.savefig("/home/jyang/plot/"+boxused+"/Offset_in.png")
 plt.close()
 
 '''
