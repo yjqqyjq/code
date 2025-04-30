@@ -41,10 +41,12 @@ for png_file in folder.glob("*.png"):
     pixel_y=len(img_array[:,0])
     max_position = np.unravel_index(np.argmax(img_array), img_array.shape)
     
-    y=(max_position[0]/pixel_y-0.5)*2
-    x=((1-max_position[1]/pixel_x)-0.5)*2
+    x=(max_position[1]/pixel_y-0.5)*2
+    y=((1-max_position[0]/pixel_x)-0.5)*2
     r=np.sqrt(x**2+y**2)
     offsets[i]=r
+    if r>0.5:
+        print(png_file.name,axis[i])
     x3=rotated_points[i][0]
     y3=rotated_points[i][1]
     r3=np.sqrt(x3**2+y3**2)
@@ -65,7 +67,7 @@ ax.set_xlabel("2doffsets/rvir")
 ax.set_ylabel("Counts")
 ax.set_title("Offsets of 2d xray lum max(from gagetry) and mbp")
 fig.savefig("/home/jyang/plot/"+boxused+"/halo_2_2doffset_kde1.png")
-'''
+
 fig = plt.figure()
 ax=plt.subplot(1,1,1)
 ax.scatter(offsets,offsets_3dproj,s=1,color='r')
@@ -75,3 +77,4 @@ ax.set_xlabel("2doffsets/rvir")
 ax.set_ylabel("3doffsets_proj/rvirs")
 ax.set_title("Offsets of 2d and 3d xray lum max(from gagetry) and mbp")
 fig.savefig("/home/jyang/plot/"+boxused+"/halo_66_2d_3d_offset_kde0.png")
+'''
