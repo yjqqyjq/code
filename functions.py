@@ -78,9 +78,15 @@ def analyse(sgi,i,x_dm,y_dm,z_dm,x_g,y_g,z_g):#swift galaxy object and index
       z_g[i]=np.array(sgi.gas.cartesian_coordinates.z)
 
 #Calculate the center of mass of the dark matter and gas particles
-def center_of_mass(x,y,z):#R_m=Mp_dm/Mp_g
-    xc=np.average(np.array(x))
-    yc=np.average(np.array(y))
-    zc=np.average(np.array(z))
+def center_of_mass(x,y,z,weight=None):#R_m=Mp_dm/Mp_g
+    if weight is None:
+ 
+      xc=np.average(np.array(x))
+      yc=np.average(np.array(y))
+      zc=np.average(np.array(z))
+    else:
+      xc=np.sum(np.array(x)*weight)/np.sum(weight)
+      yc=np.sum(np.array(y)*weight)/np.sum(weight)
+      zc=np.sum(np.array(z)*weight)/np.sum(weight)
  
     return xc,yc,zc
