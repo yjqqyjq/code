@@ -20,19 +20,23 @@ ri=np.max(x_dm)
 x_g/=ri
 y_g/=ri
 z_g/=ri
-centeri=np.array([0.5,0.5,0.5])
+centeri=np.array([0.8,0.8,0.8])
 x_g=x_g-centeri[0]
 y_g=y_g-centeri[1]
 z_g=z_g-centeri[2]
 r_g=np.sqrt((x_g)**2+(y_g)**2+(z_g)**2)
-rvir=1
+rvir=0.5
 
 for i in range(200):
     mask=(r_g<rvir)
-    centeri=fn.center_of_mass(x_g[mask],y_g[mask],z_g[mask],xray_lum[mask])
+    center=fn.center_of_mass(x_g[mask],y_g[mask],z_g[mask],xray_lum[mask])
+    if fn.radial_distance(center[0]-centeri[0],center[1]-centeri[1],center[2]-centeri[2])<0.01:
+        break
+    else:
+        centeri=center
     x_g=x_g-centeri[0]
     y_g=y_g-centeri[1]
     z_g=z_g-centeri[2]
     r_g=np.sqrt(x_g**2+y_g**2+z_g**2)
-    rvir=rvir-1/201
-    print(rvir,centeri)
+    rvir=rvir-1/401
+    print(len(x_g[mask]),centeri)

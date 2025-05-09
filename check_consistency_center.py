@@ -10,7 +10,7 @@ from swiftsimio import cosmo_array
 #load the data Flamingo
 
 
-dir="/mnt/su3-pro/flamingo/L0200N0360/"
+dir="../../mnt/su3-pro/flamingo/L0200N0360/"
 
 data_h=load(dir+"VR/halos_0008.properties.0")
 radius=np.array(data_h.radii.rvir)
@@ -19,33 +19,29 @@ is_mainhalo=data_h.centrals
 halo_id=data_h.ids.id-1
 mass=data_h.masses.mass_tot
 xc=data_h.positions.xcmbp
+
+
 yc=data_h.positions.ycmbp
 zc=data_h.positions.zcmbp
 #CoM in the catalogue
-xcm=data_h.positions.xc-xc
-ycm=data_h.positions.yc-xc
-zcm=data_h.positions.zc-xc
-xcg=data_h.positions.xc_gas+xcm#Center to mbp
-ycg=data_h.positions.yc_gas+ycm
-zcg=data_h.positions.zc_gas+zcm
-xcs=data_h.positions.xc_star+xcm
-ycs=data_h.positions.yc_star+ycm
-zcs=data_h.positions.zc_star+zcm
-data_h=[]
-mask=(is_mainhalo)*(mass>100)*(mass<101)
+
+xcs=data_h.positions.xcminpot
+
+
+mask=(is_mainhalo)*(mass>10000)
 mainhalo_id=halo_id[mask]
 mainhalo_id=mainhalo_id.astype(int)
-xcm=np.array(xcm[mask])
-ycm=np.array(ycm[mask])
-zcm=np.array(zcm[mask])
-xcg=np.array(xcg[mask])
-ycg=np.array(ycg[mask])
-zcg=np.array(zcg[mask])
-xcs=np.array(xcs[mask])
-ycs=np.array(ycs[mask])
-zcs=np.array(zcs[mask])
-print(len(mainhalo_id))
 
+xcs=np.array(xcs[mask])
+xc=np.array(xc[mask])
+
+r=radius[mask]
+o=(xc-xcs)/r
+print(o[o>0.01])
+offset=np.histogram(xcs-xc,bins=10)
+
+#print(mainhalo_id[offset>0.2])
+'''
 R_center=np.zeros(len(mainhalo_id))
 R_center_g=np.zeros(len(mainhalo_id))
 R_center_s=np.zeros(len(mainhalo_id))
@@ -96,13 +92,13 @@ boxused="/Flamingo/L0200N0360/"
 import matplotlib.pyplot as plt
 fig = plt.figure()
 ax=plt.subplot(1,1,1)
-ax.plot(mainhalo_id,R_center,'r',label="CoM")
-ax.plot(mainhalo_id,R_center_g,'g',label="CoM_g")
-ax.plot(mainhalo_id,R_center_s,'b',label="CoM_s")
-ax.set_xlabel("Halo")
-ax.set_ylabel("Ratio")
-ax.set_title("M=1to1.01e12")
-ax.legend()
+ax.hist(offset,bins=10)
+
+ax.set_xlabel("Offset")
+ax.set_ylabel("Counts")
+ax.set_title("M=>1e14,offsets between star center and mbp")
+#ax.legend()
 #fig.savefig("/home/jyang/plot/Flamingo/L0200N0360/Offset_small.png")
-fig.savefig("/home/jyang/plot/"+boxused+"/Check_CoM_verysmall.png")
+fig.savefig("/home/jyang/plot/"+boxused+"Offset_star_mbp.png")
 plt.close()
+'''

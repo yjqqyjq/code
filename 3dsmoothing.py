@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation as Ro
 from pathlib import Path
 from tqdm import tqdm
 path="/home/jyang/data/Flamingo/L0200N0360/halo_particles/"
-f=h5py.File(path+'13.hdf5','r')
+f=h5py.File(path+'66.hdf5','r')
 Coord_g=np.array(f['PartType1']["Coordinates"])
 xray_lum=np.array(f['PartType1']['xray_lum_erosita_low'])+np.array(f['PartType1']['xray_lum_erosita_high'])
 x_dm=np.array(f['PartType2']["Coordinates"]).T[0]
@@ -46,6 +46,7 @@ fig = plt.figure()
 ax=plt.subplot(1,1,1)
 ax.set_title("3D and 2D offset,npixels=200,sigma=10")
 ax.scatter(offset_3d,offset_2d,color='r',s=0.1)
+ax.plot(np.arange(0,0.1,0.005),np.arange(0,0.1,0.005),color='k',linestyle='--')
 ax.set_xlabel("3D offset")
 ax.set_ylabel("2D offset")
-fig.savefig("/home/jyang/plot/Flamingo/L0200N0720/halo13_2d_3d_offset_smoothed.png")
+fig.savefig("/home/jyang/plot/Flamingo/L0200N0720/halo66_2d_3d_offset_smoothed.png")
