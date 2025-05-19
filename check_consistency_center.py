@@ -14,7 +14,7 @@ dir="../../mnt/su3-pro/flamingo/L0200N0360/"
 
 data_h=load(dir+"VR/halos_0008.properties.0")
 radius=np.array(data_h.radii.rvir)
-
+radius2=np.array(data_h.radii.r_200crit)
 is_mainhalo=data_h.centrals
 halo_id=data_h.ids.id-1
 mass=data_h.masses.mass_tot
@@ -36,8 +36,8 @@ xcs=np.array(xcs[mask])
 xc=np.array(xc[mask])
 
 r=radius[mask]
-o=(xc-xcs)/r
-print(o[o>0.01])
+r2=radius2[mask]
+print(r/r2)
 offset=np.histogram(xcs-xc,bins=10)
 
 #print(mainhalo_id[offset>0.2])
