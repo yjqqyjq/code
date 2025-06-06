@@ -90,3 +90,12 @@ def center_of_mass(x,y,z,weight=None):#R_m=Mp_dm/Mp_g
       zc=np.sum(np.array(z)*weight)/np.sum(weight)
  
     return xc,yc,zc
+
+
+def massfunction(mass):#in 10^10Msun
+   
+    mass=np.log10(mass)
+    bins= np.linspace(0,4.5, 101)
+    h= np.histogram(mass, bins=bins)
+    bin_centers = 0.5 * (bins[:-1] + bins[1:])
+    return bin_centers, h[0]  # Normalize the histogram to get the mass function

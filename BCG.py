@@ -11,7 +11,7 @@ from PIL import Image#To plot image directly from pixle
 
 
 
-path="/Users/24756376/data/Flamingo/L1000N0900/"
+path="/Users/24756376/data/Flamingo/L1000N1800/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
 f=h5py.File(path+'halos.hdf5','r')
 
@@ -22,20 +22,20 @@ host_id=np.array(f["halos"]["hostid"])
 mass=np.array(f["halos"]["mass"])
 m200=np.array(f["halos"]["m200"])
 mbp=np.array(f["halos"]["center"])
-com_star=np.array(f["halos"]["com_star_3000kpc"])
-star_lumz=np.array(f["halos"]["lumz_3000kpc"])
-ms=np.array(f["halos"]["mass_star_3000kpc"])
+com_star=np.array(f["halos"]["com_star_100kpc"])
+#star_lumz=np.array(f["halos"]["lumz_3000kpc"])
+ms=np.array(f["halos"]["mass_star_100kpc"])
 f.close()
 
 #ignore all the halos without models of star lum and com
 rs=np.sqrt(com_star[:,0]**2+com_star[:,1]**2+com_star[:,2]**2)
-mask=(star_lumz>0)*(rs>0)*(mass>1000)
+mask=(rs>-1)
 halo_id=halo_id[mask]
 host_id=host_id[mask]
 mbp=mbp[mask]
 m200=m200[mask]
 com_star=com_star[mask]
-star_lumz=star_lumz[mask]
+#star_lumz=star_lumz[mask]
 mass=mass[mask]
 radius=radius[mask]
 ms=ms[mask]
@@ -118,10 +118,10 @@ for j in range(0,len(fBCG)):
   massbin[j]=0.5*(bin_edge[j]+bin_edge[j+1])
   if len(suboff[(subbcg!=-1)])!=0:
     fBCG[j]=len(suboff[(submain!=subbcg)*(subbcg!=-1)])/len(suboff[(subbcg!=-1)])#the number of BCG miscenter/ number of clusters(exclude halos without satellites)
-print(fBCG)
-
-path="/Users/24756376/data/Flamingo/L1000N0900/"
-f=h5py.File(path+'massBCG_exr3000kpc.hdf5','w')
+print()
+'''
+path="/Users/24756376/data/Flamingo/L1000N1800/"
+f=h5py.File(path+'massBCG_exr100kpc.hdf5','w')
 #s=f["PartType0"]
 #del s["fBCG_mscut"]
 #s.create_dataset("fBCG_mscut", data=fBCG)
@@ -132,10 +132,10 @@ s.create_dataset("fBCG", data=fBCG)
 s.create_dataset("massbin", data=massbin)
 s.create_dataset("mainid", data=mainhalo_id)
 s.create_dataset("BCGid", data=BCGid)
-s.create_dataset("BCGoffset", data=BCGoffset)
-s.create_dataset("Rbri", data=Rbri)
+#s.create_dataset("BCGoffset", data=BCGoffset)
+#s.create_dataset("Rbri", data=Rbri)
 f.close()
-'''
+
 title="D of CoM BCG and central halo, r_star<100kpc"  
 import matplotlib.pyplot as plt
 fig=plt.figure()

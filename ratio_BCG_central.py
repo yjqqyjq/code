@@ -11,7 +11,7 @@ from PIL import Image#To plot image directly from pixle
 
 
 
-path="/Users/24756376/data/Flamingo/L1000N1800/"
+path="/Users/24756376/data/Flamingo/L1000N0900/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
 f=h5py.File(path+'halos.hdf5','r')
 
@@ -23,24 +23,57 @@ mass=np.array(f["halos"]["mass"])
 m200=np.array(f["halos"]["m200"])
 mbp=np.array(f["halos"]["center"])
 com_star=np.array(f["halos"]["com_star_100kpc"])
-star_lumz=np.array(f["halos"]["lumz_100kpc"])
+#star_lumz=np.array(f["halos"]["lumz_100kpc"])
 ms=np.array(f["halos"]["mass_star_100kpc"])
 f.close()
 
 #ignore all the halos without models of star lum and com
 rs=np.sqrt(com_star[:,0]**2+com_star[:,1]**2+com_star[:,2]**2)
-mask=(star_lumz>0)*(rs>0)
+mask=(rs>-1)
 halo_id=halo_id[mask]
 host_id=host_id[mask]
 mbp=mbp[mask]
 m200=m200[mask]
-com_star=com_star[mask]
-star_lumz=star_lumz[mask]
+#com_star=com_star[mask]
+#star_lumz=star_lumz[mask]
 mass=mass[mask]
 radius=radius[mask]
+ms=ms[mask]
+print(len(ms[(ms==0)*(host_id==-1)]))
+star_lumz=ms
 ids=np.arange(0,len(halo_id),1)
 mainhalo_id=ids[(host_id==-1)*(mass>10000)]
+R=np.ones(len(mainhalo_id))
+mostmassid=np.zeros(len(mainhalo_id))
+i=0
 
+for id in (mainhalo_id):
+  id=int(id)
+
+  sub_id=ids[host_id==halo_id[id]]
+  
+  star_lum_sub=star_lumz[host_id==halo_id[id]]
+  if len(sub_id)==0:
+    R[i]=-1
+    mostmassid[i]=-1
+    i=i+1
+  else:
+    R[i]=np.max(star_lum_sub)/star_lumz[id]
+    mostmassid[i]=int(sub_id[star_lum_sub==np.max(star_lum_sub)][0])
+    i=i+1
+print(halo_id[(host_id==-1)*(mass>10000)][R>1])
+
+path="/Users/24756376/data/Flamingo/L1000N0900/"
+f=h5py.File(path+'compare_most_massive_sat.hdf5','w')
+
+
+s=f.create_group("PartType0")
+s.create_dataset("centralid", data=mainhalo_id)
+s.create_dataset("Brightid", data=mostmassid)
+s.create_dataset("Rmass", data=R)
+
+f.close()
+'''
 Brightid=np.zeros(len(mainhalo_id))
 Bright2nd_id=np.zeros(len(mainhalo_id))
 
@@ -70,24 +103,23 @@ for id in (mainhalo_id):
 
     Brightid[i]=id
     Bright2nd_id[i]=int(sub_id[star_lum_sub==np.max(star_lum_sub)][0])
-    if np.max(star_lum_sub)/star_lumz[int(Bright2nd_id[i])]!=1:
-      print(np.max(star_lum_sub),star_lumz[int(Bright2nd_id[i])])
+#    if np.max(star_lum_sub)/star_lumz[int(Bright2nd_id[i])]!=1:
+#      print(np.max(star_lum_sub),star_lumz[int(Bright2nd_id[i])])
       
   else:
     #purt all halos togethers to compare
-    subid=np.append(sub_id,id)
-    starlumsub=np.append(star_lum_sub,star_lumz[id])
+#    subid=np.append(sub_id,id)
+#    starlumsub=np.append(star_lum_sub,star_lumz[id])
     
-    Brightid[i]=int(subid[starlumsub==np.max(starlumsub)][0])
+    Brightid[i]=int(sub_id[star_lum_sub==np.max(star_lum_sub)][0])
     
-    subid=subid[starlumsub!=np.max(starlumsub)]
-    starlumsub=starlumsub[starlumsub!=np.max(starlumsub)]
-    Bright2nd_id[i]=int(subid[starlumsub==np.max(starlumsub)][0])
+
+    Bright2nd_id[i]=id
   
     
-    if Bright2nd_id[i]!=id:
-      print("fatal error, please smash your laptop immediately")
-      print(Bright2nd_id[i],Brightid[i],id)
+#   if Bright2nd_id[i]!=id:
+#      print("fatal error, please smash your laptop immediately")
+# 
 
    
 
@@ -95,7 +127,7 @@ for id in (mainhalo_id):
 
 
 path="/Users/24756376/data/Flamingo/L1000N1800/"
-f=h5py.File(path+'compare_brightnest_central.hdf5','w')
+f=h5py.File(path+'compare_brightnest_central_3000kpc.hdf5','w')
 
 
 s=f.create_group("PartType0")
@@ -104,7 +136,7 @@ s.create_dataset("Brightid", data=Brightid)
 s.create_dataset("Bright2ndid", data=Bright2nd_id)
 
 f.close()
-'''
+
 title="D of mbp BCG and central halo, r_star<100kpc"  
 import matplotlib.pyplot as plt
 fig=plt.figure()
