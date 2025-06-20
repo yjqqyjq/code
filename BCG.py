@@ -11,7 +11,7 @@ from PIL import Image#To plot image directly from pixle
 
 
 
-path="/Users/24756376/data/Flamingo/L1000N1800/"
+path="/Users/24756376/data/Flamingo/L1000N0900/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
 f=h5py.File(path+'halos.hdf5','r')
 
@@ -25,6 +25,7 @@ mbp=np.array(f["halos"]["center"])
 com_star=np.array(f["halos"]["com_star_100kpc"])
 #star_lumz=np.array(f["halos"]["lumz_3000kpc"])
 ms=np.array(f["halos"]["mass_star_100kpc"])
+msg=np.array(f["halos"]["mass_gas_bound"])
 f.close()
 
 #ignore all the halos without models of star lum and com
@@ -44,7 +45,7 @@ mainhalo_id=ids[(host_id==-1)*(mass>10000)]
 BCGid=np.zeros(len(mainhalo_id))
 BCGoffset=np.zeros(len(mainhalo_id))
 Rbri=np.ones(len(mainhalo_id))
-star_lumz=ms####
+star_lumz=msg####
 '''
 mbp=mbp[(host_id!=-1)]
 com_star=com_star[(host_id!=-1)]
@@ -79,8 +80,8 @@ for id in (mainhalo_id):
   
 
   if len(sub_id)==0:
-    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
-                                     com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]#the halo doesn't have any subhalo
+#    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
+#                                     com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]#the halo doesn't have any subhalo
 
     BCGid[i]=-1
     i=i+1
@@ -88,19 +89,19 @@ for id in (mainhalo_id):
   
 #  hosthalo is not included in the subhalo
   if star_lumz[id]>=np.max(star_lum_sub):
-    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
-                                    com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]
+#    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
+#                                    com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]
 
     BCGid[i]=id
   else:
     
     BCG_id=sub_id[star_lum_sub==np.max(star_lum_sub)][0]
     BCGid[i]=BCG_id
-    BCGoffset[i]=fn.radial_distance(com_star[BCG_id][0]-mbp[id][0],
-                                    com_star[BCG_id][1]-mbp[id][1],com_star[BCG_id][2]-mbp[id][2])/radius[id]
+#    BCGoffset[i]=fn.radial_distance(com_star[BCG_id][0]-mbp[id][0],
+#                                    com_star[BCG_id][1]-mbp[id][1],com_star[BCG_id][2]-mbp[id][2])/radius[id]
     Rbri[i]=np.max(star_lum_sub)/star_lumz[id]
-#    BCGoffset[i]=fn.radial_distance(mbp[BCG_id][0]-mbp[id][0],
-#                                    mbp[BCG_id][1]-mbp[id][1],mbp[BCG_id][2]-mbp[id][2])/radius[id]
+    BCGoffset[i]=fn.radial_distance(mbp[BCG_id][0]-mbp[id][0],
+                                    mbp[BCG_id][1]-mbp[id][1],mbp[BCG_id][2]-mbp[id][2])/radius[id]
    
 
   i=i+1
@@ -119,9 +120,9 @@ for j in range(0,len(fBCG)):
   if len(suboff[(subbcg!=-1)])!=0:
     fBCG[j]=len(suboff[(submain!=subbcg)*(subbcg!=-1)])/len(suboff[(subbcg!=-1)])#the number of BCG miscenter/ number of clusters(exclude halos without satellites)
 print()
-'''
-path="/Users/24756376/data/Flamingo/L1000N1800/"
-f=h5py.File(path+'massBCG_exr100kpc.hdf5','w')
+
+path="/Users/24756376/data/Flamingo/L1000N0900/"
+f=h5py.File(path+'BCG_gasmass.hdf5','w')
 #s=f["PartType0"]
 #del s["fBCG_mscut"]
 #s.create_dataset("fBCG_mscut", data=fBCG)
@@ -132,11 +133,11 @@ s.create_dataset("fBCG", data=fBCG)
 s.create_dataset("massbin", data=massbin)
 s.create_dataset("mainid", data=mainhalo_id)
 s.create_dataset("BCGid", data=BCGid)
-#s.create_dataset("BCGoffset", data=BCGoffset)
-#s.create_dataset("Rbri", data=Rbri)
+s.create_dataset("BCGoffset", data=BCGoffset)
+s.create_dataset("Rbri", data=Rbri)
 f.close()
-
-title="D of CoM BCG and central halo, r_star<100kpc"  
+'''
+title="D of mbp of BCG and central halo, r<3000kpc"  
 import matplotlib.pyplot as plt
 fig=plt.figure()
 ax=plt.subplot(111)
@@ -148,5 +149,5 @@ ax.set_title(title)
 ax.hist(BCGoffset,bins=50)
 ax.set_yscale("log")
 #ax.plot(np.logspace(0,4,100),np.logspace(0,4,100)*0.1,color='r')
-fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/massBCG_offset_exr300kpc.png")
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/BCG_gasmass_3000kpc.png")
 '''

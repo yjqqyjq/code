@@ -11,7 +11,7 @@ from PIL import Image#To plot image directly from pixle
 
 
 
-path="/Users/24756376/data/Flamingo/L1000N0900/"
+path="/Users/24756376/data/Flamingo/L1000N1800/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
 f=h5py.File(path+'halos.hdf5','r')
 
@@ -23,7 +23,7 @@ mass=np.array(f["halos"]["mass"])
 m200=np.array(f["halos"]["m200"])
 mbp=np.array(f["halos"]["center"])
 com_star=np.array(f["halos"]["com_star_100kpc"])
-#star_lumz=np.array(f["halos"]["lumz_100kpc"])
+msg=np.array(f["halos"]["mass_gas_bound"])
 ms=np.array(f["halos"]["mass_star_100kpc"])
 f.close()
 
@@ -40,7 +40,7 @@ mass=mass[mask]
 radius=radius[mask]
 ms=ms[mask]
 print(len(ms[(ms==0)*(host_id==-1)]))
-star_lumz=ms
+star_lumz=msg
 ids=np.arange(0,len(halo_id),1)
 mainhalo_id=ids[(host_id==-1)*(mass>10000)]
 R=np.ones(len(mainhalo_id))
@@ -63,8 +63,8 @@ for id in (mainhalo_id):
     i=i+1
 print(halo_id[(host_id==-1)*(mass>10000)][R>1])
 
-path="/Users/24756376/data/Flamingo/L1000N0900/"
-f=h5py.File(path+'compare_most_massive_sat.hdf5','w')
+path="/Users/24756376/data/Flamingo/L1000N1800/"
+f=h5py.File(path+'compare_most_massive_sat_gas.hdf5','w')
 
 
 s=f.create_group("PartType0")

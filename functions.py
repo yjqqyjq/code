@@ -99,3 +99,4 @@ def massfunction(mass):#in 10^10Msun
     h= np.histogram(mass, bins=bins)
     bin_centers = 0.5 * (bins[:-1] + bins[1:])
     return bin_centers, h[0]  # Normalize the histogram to get the mass function
+
