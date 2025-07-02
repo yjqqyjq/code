@@ -7,68 +7,180 @@ from swiftsimio import load
 import swiftgalaxy as sg
 import functions as fn
 from swiftgalaxy import SWIFTGalaxy, MaskCollection
+import h5py
+from tqdm import tqdm
 
 
 #work with SOAP
 #load the data
-soap_dir="../../../mnt/su3-pro/colibre/L0012N0094/THERMAL_AGN/SOAP/"
+path="/Users/24756376/data/Flamingo/L1000N0900/"
 
-data_h=sw.load(soap_dir+"/halo_properties_0127.hdf5")
-#select the main halo
-host_id=data_h.soap.host_halo_index#central halo=-1\
-halo_id=np.arange(0,len(host_id),1)
-mass=data_h.spherical_overdensity_200_crit.total_mass
-mainhalo_id=halo_id[(host_id==-1)*(mass>100)]
-radius=data_h.bound_subhalo.enclose_radius
+f=h5py.File(path+'halos_ranked.hdf5','r')
+N_g=np.array(f['N_g'])
+N_dm=np.array(f['N_dm'])
+N_s=np.array(f['N_s'])
+N_dm_c=np.array(f['N_dm_c'])
+N_g_c=np.array(f['N_g_c'])
+N_s_c=np.array(f['N_s_c'])
+input_id=np.array(f['input_ids'])
+halo_ids=np.array(f['id'])
+mass=np.array(f['mass'])
+cross=np.array(f['cross_bound'])
+f.close()
 
-data_h=[]
+f=h5py.File(path+'particles_ranked.hdf5','r')
+Coord_dm=np.array(f['PartType1']['Coordinates'],dtype=np.float32)
+Coord_g=np.array(f['PartType0']['Coordinates'],dtype=np.float32)
+Coord_s=np.array(f['PartType2']['Coordinates'],dtype=np.float32)
+f.close()
 
-x_dm=[[]]
-y_dm=[[]]
-z_dm=[[]]
-x_g=[[]]
-y_g=[[]]
-z_g=[[]]
-R=np.zeros(len(mainhalo_id))
-for i in range(0, len(mainhalo_id)-1):
+def load_halo(id,dm=0,g=0,s=0):
+      """
+      Load halo data from the specified path and ID.
+      """
+   
+      arg=np.nonzero(halo_ids==id)[0]
+      
+    
+    
+      arg=int(arg)
+      slide=[]
+      if dm==1:
+   
+        dm_s=int(np.sum(N_dm[0:arg]))
+        dm_e=int(np.sum(N_dm[0:arg+1]))
+        slide.append(slice(dm_s,dm_e))
+      if g==1:
+        g_s=int(np.sum(N_g[0:arg]))
+        g_e=int(np.sum(N_g[0:arg+1]))
+        slide.append(slice(g_s,g_e))
+      if s==1:
+        s_s=int(np.sum(N_s[0:arg]))
+        s_e=int(np.sum(N_s[0:arg+1]))
+        slide.append(slice(s_s,s_e))
+      
+      slide=np.array(slide).T
+      key=[]
+      if dm==1:
+        key.append('dm')
+      if g==1:
+        key.append('gas')
+      if s==1:
+        key.append('stars')
+      return key,slide#in the form of [dm,g,s,[[dm_s,dm_e],[g_s,g_e],[s_s,s_e]]]
+def load_cluster(id,dm=0,g=0,s=0):
+   if id>0:
+      id=-int(id) 
+      print("warning: this is a satellite, loading the cluster it belongs to")
+   arg=np.nonzero(halo_ids[halo_ids<=0]==id)[0]
+   arg=int(arg)
+   slide=[]
+   if dm==1:
+     
+   
+     dm_s=int(np.sum(N_dm_c[0:arg]))
+     dm_e=int(np.sum(N_dm_c[0:arg+1]))
+     slide.append(slice(dm_s,dm_e))
+   #  print(arg)
+   if g==1:
+      g_s=int(np.sum(N_g_c[0:arg]))
+      g_e=int(np.sum(N_g_c[0:arg+1]))
+      slide.append(slice(g_s,g_e))
+   if s==1:
+      s_s=int(np.sum(N_s_c[0:arg]))
+      s_e=int(np.sum(N_s_c[0:arg+1]))
+      slide.append(slice(s_s,s_e))
+
+   slide=np.array(slide)
+   key=[]
+   if dm==1:
+       key.append('dm')
+   if g==1:
+       key.append('gas')
+   if s==1:
+       key.append('stars')
+   return key,slide
+# create the slice and then find al the particles in the slice, that save the spae by avoinding loading evertything  
+def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo"):
+   if mode=="halo":
+      keys,slides=load_halo(id,dm,g,s)
+   elif mode=="cluster":
+      keys,slides=load_cluster(id,dm,g,s)
+   else:
+      raise ValueError("What on earth do you want to do?")
+#   print(keys)
+   # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
+   f=h5py.File(path+'particles_ranked.hdf5','r')
+   dataset=[]
+   if dm==1:
+      
+      dataset.append(f['PartType1'])
+   if g==1:
+      
+      dataset.append(f['PartType0'])
+   if s==1:
+       
+      dataset.append(f['PartType2'])
+   particles=[]
+
+   for i in range(0,len(dataset)):
+      comp=[]
+      data=dataset[i]
+#      if slides[i].start==slides[i].stop:
+##         print("no particles in this halo")
+#         continue
+      
+      if coordinate==1:
+             
+             Coord=np.array(data['Coordinates'][slides[i]],dtype=np.float32)
+           
+             comp.append(Coord)
+             
+      if extra_entry[keys[i]]!=[]:
+             for entry in extra_entry[keys[i]]:
+            
+               for slide in slides:
+                 
+                 entry_data=np.array(data[entry][slides[i]],dtype=np.float32)
+                 
+                 comp.append(entry_data)
+      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
+      
+      particles.append(comp)#in shape dm, g, s
+   f.close()      
+      
+   return particles
+S=np.zeros(len(halo_ids[halo_ids<=0]))
+main_id=halo_ids[halo_ids<=0]
+for i in tqdm(range(len(S))):
+  if np.sum(cross[(halo_ids>i)*(halo_ids<i+1)+(halo_ids==-i)])!=0:
+    particle=load_particles(path,main_id[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
   
-    x_dm.append([])
-    x_g.append([])
-    z_dm.append([])
-    y_dm.append([])
-    y_g.append([])
-    z_g.append([])
+  
+    S[i]=fn.dissociation(particle[0][0],particle[1][0])
+  else:
+    S[i]=-10
+print(np.histogram(S[S>=-1],bins=10))
+print(len(S[S==-10]),len(cross[cross>0]))
+import subprocess
+import sys
 
-
+# Run the first script
+#subprocess.run([sys.executable, "script_to_run_first.py", "argument_value"])      
 #get the coordinates of the dark matter and gas particles
 
 #analyse the main halo
-sgs=sg.SWIFTGalaxies(soap_dir+"colibre_with_SOAP_membership_0127.hdf5",
-    sg.SOAP(soap_dir+"/halo_properties_0127.hdf5",soap_index=mainhalo_id,extra_mask=None),
-    preload={"dark_matter.cartesian_coordinates","gas.cartesian_coordinates","halo_catalogue"})
 
-i=0
-for sgi in sgs:
-    fn.analyse(sgi,i,x_dm, y_dm, z_dm,x_g, y_g,z_g)
-    R[i]=sgi.halo_catalogue.soap_index
-   
-    i+=1  
-
-R=R.astype(int)    
 #calculate the dissociation
 '''
 S=np.zeros(len(x_dm))exit
 for i in  range(0,len(x_dm)):
       S[i]=fn.dissociation(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
- 
+      Offset[i]=fn.offset(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
 '''   
 
 
-Offset=np.zeros(len(x_dm))
-for i in  range(0,len(x_dm)):
-  
-      Offset[i]=fn.offset(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
-print(Offset*1000)   
+ 
 #plot
 import matplotlib.pyplot as plt
 plt.close()

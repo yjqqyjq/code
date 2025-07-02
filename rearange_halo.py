@@ -34,22 +34,20 @@ f.close()
 #table=np.array(table).T
 #print(table[0])
 print(keys)
-
+#rank by reverse mass first
 table=np.array(table)
+maskm = np.argsort(table[masskey],kind="mergesort")[::-1]
+table=table[:,maskm]
 
-#print(table[3])
-mask = np.argsort(table[masskey],kind="mergesort")[::-1]
-table_new=table[:,mask]
-#print(table_new[0])
-id_comb=np.zeros(len(table_new[0]))
+id_comb=np.zeros(len(table[0]))
 maincount=0
 
-for i in tqdm(range(0,len(table_new[0]))):
-    if table_new[keys.index("hostid")][i]==-1:
+for i in tqdm(range(0,len(table[0]))):
+    if table[keys.index("hostid")][i]==-1:
         id_comb[i]=-maincount
-        mask=(table_new[keys.index("hostid")]==table_new[keys.index("id")][i])
+        mask=(table[keys.index("hostid")]==table[keys.index("id")][i])
         
-        sub_id=table_new[keys.index("id")][mask]
+        sub_id=table[keys.index("id")][mask]
         
         if len(sub_id>0):
             
@@ -58,10 +56,16 @@ for i in tqdm(range(0,len(table_new[0]))):
            
             id_comb[mask]=maincount+1/(len(sub_id)+2)*index
         maincount+=1
+#print(table[3])
+id_sort=np.where(id_comb<0,-id_comb,id_comb)
+mask = np.argsort(id_sort,kind="mergesort")
+table_new=table[:,mask]
+#print(table_new[0])
+
 #print(id_comb)
 #print(id_comb)
 f=h5py.File(path+'halos_ranked.hdf5','w')
-f.create_dataset("id",data=id_comb)
+f.create_dataset("id",data=id_comb[mask])
 for i in range(0,len(table_new)):
   if keys[i]=="hostid" or keys[i]=="id":
       continue

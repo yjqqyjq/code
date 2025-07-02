@@ -2,16 +2,18 @@
 import numpy as np
 import h5py
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 path="/Users/24756376/data/Flamingo/L1000N0900/"
 f=h5py.File(path+'halos_ranked.hdf5','r')
 N_g=np.array(f['N_g'])
 id=np.array(f['id'])
+mass=np.array(f['mass'])
 f.close()
 f=h5py.File(path+'particles_ranked.hdf5','r')
 Xray=np.array(f['PartType0']['xray_lum_erosita_low'],dtype=np.float32)
 f.close()
 main_id=id[id<=0]
-
+mass=mass[id<=0]
 Rlum=np.zeros(len(main_id))
 Rmass=np.zeros(len(main_id))
 for i in tqdm(range(0,len(main_id))):
@@ -36,3 +38,12 @@ for i in tqdm(range(0,len(main_id))):
     
      Rlum[i]=lum_sub/lum_main
 print(np.histogram(Rlum[Rlum>0],bins=20))
+plt.figure()
+ax=plt.subplot(111)
+ax.scatter(mass,Rlum,s=1,alpha=0.3)
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlabel('Mass/10^10Msun')
+ax.set_ylabel('Luminosity ratio(brightest sat/central)')
+ax.set_title('X-ray luminosity ratio of brightest satellite to central')
+plt.savefig('/Users/24756376/plot/Flamingo/L1000N0900/xray_lum_ratio.png')

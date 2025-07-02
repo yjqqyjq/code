@@ -27,7 +27,10 @@ def quadrupole(x, y,z,num_particles):
     f_2=np.sum(spherical_harmonic__2(x, y,z)*r)
     return np.sqrt(f0**2+f1**2+f2**2+f_1**2+f_2**2) / num_particles
 #dissociation functions of an array of coordinates  
-def dissociation(x_dm, y_dm,z_dm ,x_g, y_g, z_g):
+def dissociation(Coord_dm ,Coord_g):
+    x_dm, y_dm, z_dm = Coord_dm[:,0], Coord_dm[:,1], Coord_dm[:,2]
+    x_g, y_g, z_g = Coord_g[:,0], Coord_g[:,1], Coord_g[:,2]
+    #center of mass
     xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
     xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
     xdm=np.array(x_dm-xdmc)   
