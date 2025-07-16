@@ -2,24 +2,28 @@ from scipy.ndimage import gaussian_filter
 import numpy as np
 import matplotlib.pyplot as plt
 import unyt
-import swiftsimio as sw
+import functions as fn
 import h5py
 from scipy.spatial.transform import Rotation as Ro
 from pathlib import Path
 from tqdm import tqdm
-path="/home/jyang/data/Flamingo/L0200N0360/halo_particles/"
-f=h5py.File(path+'66.hdf5','r')
-Coord_g=np.array(f['PartType1']["Coordinates"])
-xray_lum=np.array(f['PartType1']['xray_lum_erosita_low'])+np.array(f['PartType1']['xray_lum_erosita_high'])
-x_dm=np.array(f['PartType2']["Coordinates"]).T[0]
-f.close()
-r=np.max(x_dm)
+from matplotlib import colors
+path="/Users/24756376/data/Flamingo/L1000N0900/"
+id=3
+
+main_id=fn.halo_ids[fn.halo_ids<=0]
+mainarg=np.argwhere((fn.halo_ids==-id))
+center=fn.centers[fn.halo_ids<=0][id]
 #histgram and smoothing
-file=h5py.File("/home/jyang/data/Flamingo/L02000720/halo_2d_lum_rotate/2_kde1.hdf5",'r')
-axis=np.array(file['PartType1']["rot_axis"]).T
-file.close()
-offset_3d=np.zeros(len(axis))
-offset_2d=np.zeros(len(axis))
+
+particle=fn.load_particles(path,fn.halo_ids[mainarg[0]],dm=0,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":["xray_lum_erosita_low"],"stars":[]},mode="halo")
+Coord_g=particle[0][0]-center
+Coord_g=Coord_g/np.max(Coord_g[:,0])
+xlum=particle[0][1]
+#offset_3d=np.zeros(len(axis))
+#offset_2d=np.zeros(len(axis))
+#rotate
+'''
 for i in tqdm(range(0,len(axis))):
   rotation = Ro.from_rotvec(-axis[i])
   rotated_points = rotation.apply(Coord_g)/r
@@ -42,11 +46,38 @@ for i in tqdm(range(0,len(axis))):
   offset_3d[i]=r3
   offset_2d[i]=r2
 #  print(max_position,max_position_2d)
+'''
+hist=np.histogramdd(Coord_g,bins=200,range=[[-1,1],[-1,1],[-1,1]],weights=xlum)
+density=hist[0]
+edge=hist[1]
+bins=10**np.linspace(np.log10(np.min(density[density!=0])),np.log10(np.max(density)),10)
+binnum=np.digitize(density,bins)
+
+density_smooth=np.zeros(density.shape)
+
+for i in range(0,len(bins)-1):
+  density_part=np.where(binnum==i+1,density,density)
+  density_smooth += gaussian_filter(density_part,sigma=10/2**i,mode='constant',truncate=3.0)
+max_position = np.unravel_index(np.argmax(density_smooth), density_smooth.shape)
+img=np.sum(density_smooth,axis=2)
 fig = plt.figure()
-ax=plt.subplot(1,1,1)
+
+'''
 ax.set_title("3D and 2D offset,npixels=200,sigma=10")
 ax.scatter(offset_3d,offset_2d,color='r',s=0.1)
 ax.plot(np.arange(0,0.1,0.005),np.arange(0,0.1,0.005),color='k',linestyle='--')
 ax.set_xlabel("3D offset")
 ax.set_ylabel("2D offset")
 fig.savefig("/home/jyang/plot/Flamingo/L0200N0720/halo66_2d_3d_offset_smoothed.png")
+'''
+i=plt.imshow(img,norm=colors.LogNorm(),cmap="gray")
+#ax=plt.subplot(1,1,1)
+
+plt.title("xlum after smoothing,npixels=200,sigma=10")
+#ax.plot(i)
+#ax.scatter(offset_3d,offset_2d,color='r',s=0.1)
+#ax.plot(np.arange(0,0.1,0.005),np.arange(0,0.1,0.005),color='k',linestyle='--')
+plt.xlabel("X")
+plt.ylabel("Y")
+
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/test.png")

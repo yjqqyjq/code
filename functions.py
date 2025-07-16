@@ -109,11 +109,9 @@ def massfunction(mass):#in 10^10Msun
 
 import numpy as np
 import unyt
-import swiftsimio as sw
-from swiftsimio import load
-import swiftgalaxy as sg
-import functions as fn
-from swiftgalaxy import SWIFTGalaxy, MaskCollection
+
+
+
 import h5py
 from tqdm import tqdm
 
@@ -134,6 +132,8 @@ halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
 cross=np.array(f['cross_bound'])
 centers=np.array([f["center_x"],f["center_y"],f["center_z"]]).T
+ms100=np.array(f['mass_star_100kpc'])
+ms3000=np.array(f['mass_star_1000kpc'])
 r200=np.array(f["r200"])
 f.close()
 
@@ -144,7 +144,8 @@ def load_halo(id,dm=0,g=0,s=0):
       Load halo data from the specified path and ID.
       """
    
-      arg=np.nonzero(halo_ids==id)[0]
+      arg=np.nonzero(halo_ids==float(id))[0]
+   
       
     
     
@@ -243,13 +244,11 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
              
       if extra_entry[keys[i]]!=[]:
              for entry in extra_entry[keys[i]]:
-            
-               for slide in slides:
-                 
+               
                  entry_data=np.array(data[entry][slides[i]],dtype=np.float32)
-                 
+             
                  comp.append(entry_data)
-      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
+#      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
       
       particles.append(comp)#in shape dm, g, s
    f.close()      

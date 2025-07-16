@@ -2,11 +2,7 @@
 # easier reference in the code. NumPy is a popular library in Python used for numerical computations.
 import numpy as np
 import unyt
-import swiftsimio as sw
-from swiftsimio import load
-import swiftgalaxy as sg
 import functions as fn
-from swiftgalaxy import SWIFTGalaxy, MaskCollection
 import h5py
 from tqdm import tqdm
 
@@ -23,26 +19,26 @@ halo_ids=fn.halo_ids
 O=np.zeros(len(halo_ids[halo_ids<=0]))
 #Scale=np.zeros(len(halo_ids[halo_ids<=0]))
 main_id=halo_ids[halo_ids<=0]
+
 for i in tqdm(range(len(O))):
   if np.sum(fn.cross[(halo_ids>i)*(halo_ids<i+1)+(halo_ids==-i)])==0:
-    particle=fn.load_particles(path,main_id[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
+    center=fn.centers[fn.halo_ids<=0][i]
+    particle=fn.load_particles(path,main_id[i],dm=1,g=0,s=1,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
+    
+    particle=[particle[0][0]-center,particle[1][0]-center]
+#    r=np.sqrt(particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2)
+    
   
-  
-    O[i]=fn.offset(particle[0][0],particle[1][0])
+    O[i]=fn.offset(particle[0],particle[1])
   else:
-    O[i]=0
+    O[i]=-1
+ 
+    
 
 O=O/fn.r200[halo_ids<=0]
 #analyse the main halo
 
-#calculate the dissociation
-'''
-S=np.zeros(len(x_dm))exit
-for i in  range(0,len(x_dm)):
-      S[i]=fn.dissociation(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
-      Offset[i]=fn.offset(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
-'''   
-
+print(main_id[O<0.007])
 
  
 #plot
@@ -51,10 +47,10 @@ plt.close()
 
 fig = plt.figure()
 ax=plt.subplot(1,1,1)
-h=ax.hist(O[O!=0], bins=100)
+h=ax.hist(O[O!=-1], bins=10**np.linspace(-4,0.5,100))
 ax.set_xlabel("Offset/r200")
 ax.set_ylabel("Counts")
-ax.set_title("M>10^14,Offsets between DM and gas CoM")
+ax.set_title("M>10^14,Offsets between DM and Star CoM")
 ax.set_yscale("log")
 ax.set_xscale("log")
-fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Offsets.png")
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Offsets_DM_star.png")
