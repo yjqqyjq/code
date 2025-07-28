@@ -36,15 +36,11 @@ for i in tqdm(range(len(S))):
 #analyse the main halo
 
 #calculate the dissociation
-'''
-S=np.zeros(len(x_dm))exit
-for i in  range(0,len(x_dm)):
-      S[i]=fn.dissociation(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
-      Offset[i]=fn.offset(x_dm[i], y_dm[i], z_dm[i],x_g[i], y_g[i],z_g[i])
-'''   
+
+
 
 print(main_id[(S>0.3)*(S<0.4)])
- 
+'''
 #plot
 import matplotlib.pyplot as plt
 plt.close()
@@ -58,7 +54,7 @@ ax.set_title("M>10^14")
 ax.set_yscale("log")
 fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Dissociation.png")
 
-'''
+
 plt.close()
 fig = plt.figure()
 ax=plt.subplot(1,1,1)

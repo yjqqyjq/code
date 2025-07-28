@@ -13,7 +13,7 @@ from PIL import Image#To plot image directly from pixle
 
 path="/Users/24756376/data/Flamingo/L1000N0900/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
-f=h5py.File(path+'halos.hdf5','r')
+f=h5py.File(path+'halos_ranked.hdf5','r')
 
 halo_id=np.array(f["halos"]["id"])
 

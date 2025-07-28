@@ -10,10 +10,10 @@ path="/Users/24756376/data/Flamingo/L1000N0900/"
 f=h5py.File(path+'halos_ranked.hdf5','r')
 id=np.array(f['id'])
 N_dm=np.array(f['N_dm'])
-c=np.array(f['cross_bound'])
+#c=np.array(f['cross_bound'])
 f.close()
-print(id[(c==1)])
-'''
+#print(id[(c==1)])
+
 main_id=id[id<0]
 cross=np.zeros(len(N_dm))
 f=h5py.File(path+'particles_ranked.hdf5','r')
@@ -37,4 +37,3 @@ f=h5py.File(path+'halos_ranked.hdf5','a')
 #del f["cross_bound"]
 f.create_dataset("cross_bound",data=cross)
 f.close()
-'''

@@ -87,7 +87,7 @@ member_s=[]
 
 
 
-print(N_dm[0:10])
+
 print(tracemalloc.get_traced_memory())
 tracemalloc.stop()
 print(datetime.datetime.now())
@@ -172,14 +172,6 @@ star_new=PartType2[:,mask_s]
 PartType2=[]
 
 
-#print(table_new)
-#print(N_g)
-
-
-
-
-#print(id_comb)
-#print(id_comb)
 #save the data to new file
 
 f=h5py.File(path+'halos_ranked.hdf5','a')

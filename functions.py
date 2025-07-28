@@ -122,19 +122,22 @@ path="/Users/24756376/data/Flamingo/L1000N0900/"
 
 f=h5py.File(path+'halos_ranked.hdf5','r')
 N_g=np.array(f['N_g'])
+
 N_dm=np.array(f['N_dm'])
 N_s=np.array(f['N_s'])
 N_dm_c=np.array(f['N_dm_c'])
 N_g_c=np.array(f['N_g_c'])
 N_s_c=np.array(f['N_s_c'])
-input_id=np.array(f['input_ids'])
+#input_id=np.array(f['input_ids'])
+meanT=np.array(f['mean_gas_T'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
 cross=np.array(f['cross_bound'])
 centers=np.array([f["center_x"],f["center_y"],f["center_z"]]).T
-ms100=np.array(f['mass_star_100kpc'])
-ms3000=np.array(f['mass_star_1000kpc'])
+#ms100=np.array(f['mass_star_100kpc'])
+#ms3000=np.array(f['mass_star_1000kpc'])
 r200=np.array(f["r200"])
+
 f.close()
 
 
@@ -145,7 +148,7 @@ def load_halo(id,dm=0,g=0,s=0):
       """
    
       arg=np.nonzero(halo_ids==float(id))[0]
-   
+      
       
     
     
@@ -160,6 +163,7 @@ def load_halo(id,dm=0,g=0,s=0):
         g_s=int(np.sum(N_g[0:arg]))
         g_e=int(np.sum(N_g[0:arg+1]))
         slide.append(slice(g_s,g_e))
+       
       if s==1:
         s_s=int(np.sum(N_s[0:arg]))
         s_e=int(np.sum(N_s[0:arg+1]))
@@ -175,6 +179,7 @@ def load_halo(id,dm=0,g=0,s=0):
         key.append('stars')
       return key,slide#in the form of [dm,g,s,[[dm_s,dm_e],[g_s,g_e],[s_s,s_e]]]
 def load_cluster(id,dm=0,g=0,s=0):
+  
    if id>0:
       id=-int(id) 
       print("warning: this is a satellite, loading the cluster it belongs to")
@@ -208,6 +213,7 @@ def load_cluster(id,dm=0,g=0,s=0):
    return key,slide
 # create the slice and then find al the particles in the slice, that save the spae by avoinding loading evertything  
 def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo"):
+   
    if mode=="halo":
       keys,slides=load_halo(id,dm,g,s)
    elif mode=="cluster":
@@ -232,15 +238,14 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
    for i in range(0,len(dataset)):
       comp=[]
       data=dataset[i]
-#      if slides[i].start==slides[i].stop:
-##         print("no particles in this halo")
-#         continue
+
       
       if coordinate==1:
              
              Coord=np.array(data['Coordinates'][slides[i]],dtype=np.float32)
            
              comp.append(Coord)
+             
              
       if extra_entry[keys[i]]!=[]:
              for entry in extra_entry[keys[i]]:
@@ -250,7 +255,7 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
                  comp.append(entry_data)
 #      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
       
-      particles.append(comp)#in shape dm, g, s
+      particles.append(comp)#particle in shape dm, g, s
    f.close()      
       
    return particles

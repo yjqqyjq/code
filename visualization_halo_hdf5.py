@@ -4,11 +4,11 @@ import unyt
 import functions as fn
 import h5py
 path="/Users/24756376/data/Flamingo/L1000N0900/"
-id=184
+id=-917
 
-mode="sub"
+mode=1
 dm_ext=[]
-g_ext=["xray_lum_erosita_low"]
+g_ext=["xray_lum_erosita_low","T"]
 s_ext=[]
 main_id=fn.halo_ids[fn.halo_ids<=0]
 mainarg=np.argwhere((fn.halo_ids==-id))
@@ -43,16 +43,20 @@ if mode=="sub":
   member_g=np.concatenate(member_g,dtype=np.float16)
   member_s=np.concatenate(member_s,dtype=np.float16)
 
-if mode=="halo":
+if mode==1:
   particle=fn.load_particles(path,id,dm=1,g=1,s=1,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="halo")
   center=fn.centers[fn.halo_ids==id]
+  print("1")
   
-if mode=="cluster" or "sub":
+if mode==2:
   particle=fn.load_particles(path,id,dm=1,g=1,s=1,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="cluster")
   center=center=fn.centers[fn.halo_ids<=0][int(id)]
+  print("2")
+
 #extra entry
 Coord_dm=particle[0][0]
 Coord_g=particle[1][0]
+
 Coord_s=particle[2][0]
 if dm_ext!=[]:    
       for j in range(0,len(dm_ext)):       
