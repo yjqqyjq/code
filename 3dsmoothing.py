@@ -9,7 +9,7 @@ from pathlib import Path
 from tqdm import tqdm
 from matplotlib import colors
 path="/Users/24756376/data/Flamingo/L1000N0900/"
-id=3
+id=0
 
 main_id=fn.halo_ids[fn.halo_ids<=0]
 mainarg=np.argwhere((fn.halo_ids==-id))
@@ -73,11 +73,19 @@ fig.savefig("/home/jyang/plot/Flamingo/L0200N0720/halo66_2d_3d_offset_smoothed.p
 i=plt.imshow(img,norm=colors.LogNorm(),cmap="gray")
 #ax=plt.subplot(1,1,1)
 
-plt.title("xlum after smoothing,npixels=200,sigma=10")
+plt.title("xlum after smoothing,npixels=200,sigma=10/2**density")
 #ax.plot(i)
 #ax.scatter(offset_3d,offset_2d,color='r',s=0.1)
 #ax.plot(np.arange(0,0.1,0.005),np.arange(0,0.1,0.005),color='k',linestyle='--')
 plt.xlabel("X")
 plt.ylabel("Y")
 
-fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/test.png")
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/smoothing.png")
+
+fig = plt.figure()
+img2=np.sum(density,axis=2)
+i2=plt.imshow(img2,norm=colors.LogNorm(),cmap="gray")
+plt.xlabel("X")
+plt.ylabel("Y")
+
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/smoothing_b.png")

@@ -21,7 +21,7 @@ path="/Users/24756376/data/Flamingo/L1000N0900/"
 
 halo_ids=fn.halo_ids
 S=np.zeros(len(halo_ids[halo_ids<=0]))
-Scale=np.zeros(len(halo_ids[halo_ids<=0]))
+
 main_id=halo_ids[halo_ids<=0]
 for i in tqdm(range(len(S))):
   if np.sum(fn.cross[(halo_ids>i)*(halo_ids<i+1)+(halo_ids==-i)])==0:
@@ -39,8 +39,8 @@ for i in tqdm(range(len(S))):
 
 
 
-print(main_id[(S>0.3)*(S<0.4)])
-'''
+#print(main_id[(S>0.35)*(S<0.45)])
+
 #plot
 import matplotlib.pyplot as plt
 plt.close()
@@ -50,11 +50,11 @@ ax=plt.subplot(1,1,1)
 h=ax.hist(S[S>=-1], bins=100)
 ax.set_xlabel("Diossociation")
 ax.set_ylabel("Counts")
-ax.set_title("M>10^14")
+ax.set_title("M>10^13")
 ax.set_yscale("log")
-fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Dissociation.png")
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Dissociation_M13.png")
 
-
+'''
 plt.close()
 fig = plt.figure()
 ax=plt.subplot(1,1,1)

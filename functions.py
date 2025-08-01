@@ -120,7 +120,7 @@ from tqdm import tqdm
 #load the data
 path="/Users/24756376/data/Flamingo/L1000N0900/"
 
-f=h5py.File(path+'halos_ranked.hdf5','r')
+f=h5py.File(path+'halos_10**13.5_to_13.6_ranked.hdf5','r')
 N_g=np.array(f['N_g'])
 
 N_dm=np.array(f['N_dm'])
@@ -129,14 +129,14 @@ N_dm_c=np.array(f['N_dm_c'])
 N_g_c=np.array(f['N_g_c'])
 N_s_c=np.array(f['N_s_c'])
 #input_id=np.array(f['input_ids'])
-meanT=np.array(f['mean_gas_T'])
+#meanT=np.array(f['mean_gas_T'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
-cross=np.array(f['cross_bound'])
+#cross=np.array(f['cross_bound'])
 centers=np.array([f["center_x"],f["center_y"],f["center_z"]]).T
 #ms100=np.array(f['mass_star_100kpc'])
 #ms3000=np.array(f['mass_star_1000kpc'])
-r200=np.array(f["r200"])
+#r200=np.array(f["r200"])
 
 f.close()
 
@@ -222,7 +222,7 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
       raise ValueError("What on earth do you want to do?")
 #   print(keys)
    # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
-   f=h5py.File(path+'particles_ranked.hdf5','r')
+   f=h5py.File(path+'particles_ranked_M13.hdf5','r')
    dataset=[]
    if dm==1:
       
