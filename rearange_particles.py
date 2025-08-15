@@ -18,7 +18,7 @@ from collections import Counter
 print(datetime.datetime.now())
 path="/Users/24756376/data/Flamingo/L1000N0900/"
 #path="/home/jyang/Colibre/L0012N0094/"
-f=h5py.File(path+'halos_10**13.5_to_13.6_ranked.hdf5','r')
+f=h5py.File(path+'halos_ranked.hdf5','r')
 id=np.array(f['id']).astype(np.float64)
 input_id=np.array(f['input_ids']).astype(np.int64)
 f.close()
@@ -27,7 +27,7 @@ tracemalloc.start()
 keys=[]
 #read the membership
 print("#read the membership")
-f=h5py.File(path+'cluster_particles_M13.hdf5','r')
+f=h5py.File(path+'cluster_particles.hdf5','r')
 member_dm=np.array(f['PartType1']['member'],dtype=np.int32)
 member_g=np.array(f['PartType0']['member'],dtype=np.int32)
 member_s=np.array(f['PartType2']['member'],dtype=np.int32)
@@ -103,7 +103,7 @@ cokey_g=0
 cokey_s=0
 #read the table and sort by the new membership sequence
 print("save the data")
-f=h5py.File(path+'cluster_particles_M13.hdf5','r')
+f=h5py.File(path+'cluster_particles.hdf5','r')
 PartType0=[]
 PartType1=[]
 PartType2=[]
@@ -174,7 +174,7 @@ PartType2=[]
 
 #save the data to new file
 
-f=h5py.File(path+'halos_10**13.5_to_13.6_ranked.hdf5','a')
+f=h5py.File(path+'halos_ranked.hdf5','a')
 f.create_dataset("N_g",data=N_g)
 f.create_dataset("N_dm",data=N_dm)
 f.create_dataset("N_s",data=N_s)
@@ -182,8 +182,8 @@ f.create_dataset("N_g_c",data=N_g_c)
 f.create_dataset("N_dm_c",data=N_dm_c)
 f.create_dataset("N_s_c",data=N_s_c)
 f.close()
-
-f=h5py.File(path+'particles_ranked_M13.hdf5','w')
+'''
+f=h5py.File(path+'particles_ranked_13.hdf5','w')
 dm=f.create_group("PartType1")
 for j in range(0,len(dm_new)):
     if keys_dm[j]=="Coordinates":
@@ -204,5 +204,5 @@ for j in range(0,len(star_new)):
 s.create_dataset("Coordinates",data=np.array([star_new[cokey_s],star_new[cokey_s+1],star_new[cokey_s+2]],dtype=np.float32).T)
 f.close()
 
- 
+ '''
  

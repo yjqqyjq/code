@@ -24,22 +24,25 @@ S=np.zeros(len(halo_ids[halo_ids<=0]))
 
 main_id=halo_ids[halo_ids<=0]
 for i in tqdm(range(len(S))):
-  if np.sum(fn.cross[(halo_ids>i)*(halo_ids<i+1)+(halo_ids==-i)])==0:
+#  if np.sum(fn.cross[(halo_ids>i)*(halo_ids<i+1)+(halo_ids==-i)])==0:
     particle=fn.load_particles(path,main_id[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
   
   
     S[i]=fn.dissociation(particle[0][0],particle[1][0])
-  else:
-    S[i]=-10
+#  else:
+#   S[i]=-10
 
 
 #analyse the main halo
 
 #calculate the dissociation
 
-
-
-#print(main_id[(S>0.35)*(S<0.45)])
+h=np.histogram(S[S>-10],bins=100)
+print((h[1][1:]+h[1][-1:])/2)
+f=h5py.File(path+'S13.hdf5','w')
+f.create_dataset("S",data=h[0]/len(S[S>-10]))
+f.create_dataset("bin",data=(h[1][1:]+h[1][:-1])/2)
+f.close()
 
 #plot
 import matplotlib.pyplot as plt
@@ -53,7 +56,6 @@ ax.set_ylabel("Counts")
 ax.set_title("M>10^13")
 ax.set_yscale("log")
 fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/Dissociation_M13.png")
-
 '''
 plt.close()
 fig = plt.figure()

@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation as Ro
 from pathlib import Path
 from tqdm import tqdm
 from matplotlib import colors
+from PIL import Image
 path="/Users/24756376/data/Flamingo/L1000N0900/"
 id=0
 
@@ -18,7 +19,7 @@ center=fn.centers[fn.halo_ids<=0][id]
 
 particle=fn.load_particles(path,fn.halo_ids[mainarg[0]],dm=0,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":["xray_lum_erosita_low"],"stars":[]},mode="halo")
 Coord_g=particle[0][0]-center
-Coord_g=Coord_g/np.max(Coord_g[:,0])
+#Coord_g=Coord_g/np.max(Coord_g[:,0])
 xlum=particle[0][1]
 #offset_3d=np.zeros(len(axis))
 #offset_2d=np.zeros(len(axis))
@@ -47,19 +48,28 @@ for i in tqdm(range(0,len(axis))):
   offset_2d[i]=r2
 #  print(max_position,max_position_2d)
 '''
-hist=np.histogramdd(Coord_g,bins=200,range=[[-1,1],[-1,1],[-1,1]],weights=xlum)
+hist=np.histogramdd(Coord_g,bins=200,range=[[-8,8],[-8,8],[-8,8]],weights=xlum)
+#print(np.min(Coord_g[:,0]),np.max(Coord_g[:,0]))
 density=hist[0]
 edge=hist[1]
 bins=10**np.linspace(np.log10(np.min(density[density!=0])),np.log10(np.max(density)),10)
 binnum=np.digitize(density,bins)
+img=np.sum(density,axis=2)
+img_smooth=gaussian_filter(img,sigma=2.4375,mode='constant',truncate=4.0)
 
-density_smooth=np.zeros(density.shape)
+#sigma=0.13Mpc
+#for i in range(0,len(bins)-1):
+#  density_part=np.where(binnum==i+1,density,density)
+#  density_smooth += gaussian_filter(density_part,sigma=1.625,mode='constant',truncate=3.0)
+#max_position = np.unravel_index(np.argmax(density_smooth), density_smooth.shape)
+print(np.sum(img),np.sum(img_smooth))
+img=np.where(img<=0,0,np.log10(img))
+img_smooth=np.where(img_smooth<=0,0,np.log10(img_smooth))
 
-for i in range(0,len(bins)-1):
-  density_part=np.where(binnum==i+1,density,density)
-  density_smooth += gaussian_filter(density_part,sigma=10/2**i,mode='constant',truncate=3.0)
-max_position = np.unravel_index(np.argmax(density_smooth), density_smooth.shape)
-img=np.sum(density_smooth,axis=2)
+#img=np.log10(img)
+print(np.sum(img),np.sum(img_smooth))
+print(np.max(img),np.max(img_smooth))
+print(np.min(img),np.min(img_smooth))
 fig = plt.figure()
 
 '''
@@ -70,22 +80,24 @@ ax.set_xlabel("3D offset")
 ax.set_ylabel("2D offset")
 fig.savefig("/home/jyang/plot/Flamingo/L0200N0720/halo66_2d_3d_offset_smoothed.png")
 '''
-i=plt.imshow(img,norm=colors.LogNorm(),cmap="gray")
-#ax=plt.subplot(1,1,1)
+i=plt.imshow(img,cmap="Reds", extent=[-8,8,-8,8],vmax=10,vmin=0)
 
-plt.title("xlum after smoothing,npixels=200,sigma=10/2**density")
-#ax.plot(i)
-#ax.scatter(offset_3d,offset_2d,color='r',s=0.1)
-#ax.plot(np.arange(0,0.1,0.005),np.arange(0,0.1,0.005),color='k',linestyle='--')
-plt.xlabel("X")
-plt.ylabel("Y")
+#i = Image.new("RGB", (200,200))
+plt.xlabel("x(Mpc)")
+plt.ylabel("y(Mpc)")
 
 fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/smoothing.png")
-
+#i.putdata(img)
+#i.save("/Users/24756376/plot/Flamingo/L1000N0900/smoothing.png")
 fig = plt.figure()
-img2=np.sum(density,axis=2)
-i2=plt.imshow(img2,norm=colors.LogNorm(),cmap="gray")
-plt.xlabel("X")
-plt.ylabel("Y")
+
+#print(np.min(img2[img2!=0]))
+
+#img2=np.log10(img2)
+
+
+i2=plt.imshow(img_smooth,cmap="Reds",extent=[-8,8,-8,8],vmax=10,vmin=0)
+plt.xlabel("x(Mpc)")
+plt.ylabel("y(Mpc)")
 
 fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/smoothing_b.png")

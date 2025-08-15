@@ -4,7 +4,7 @@ import unyt
 import functions as fn
 import h5py
 path="/Users/24756376/data/Flamingo/L1000N0900/"
-id=-2795
+id=0
 
 mode=1
 dm_ext=[]

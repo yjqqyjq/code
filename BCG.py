@@ -3,7 +3,7 @@ import unyt
 import swiftsimio as sw
 import functions as fn
 import h5py
-import tqdm
+from tqdm import tqdm
 from PIL import Image#To plot image directly from pixle
 #dir="/mnt/su3ctm/ludlow/Flamingo/L1000N0900/HYDRO_FIDUCIAL/SOAP-HBT/halo_properties_0077.hdf5"
 #dir="../../../mnt/su3-pro/colibre/L0200N1504/THERMAL_AGN/SOAP/halo_properties_0127.hdf5"
@@ -15,37 +15,27 @@ path="/Users/24756376/data/Flamingo/L1000N0900/"
 #path="/home/jyang/data/Colibre/L0200N1504/"
 f=h5py.File(path+'halos_ranked.hdf5','r')
 
-halo_id=np.array(f["halos"]["id"])
+halo_id=np.array(f["id"])
 
-radius=np.array(f["halos"]["r200"])
-host_id=np.array(f["halos"]["hostid"])
-mass=np.array(f["halos"]["mass"])
-m200=np.array(f["halos"]["m200"])
-mbp=np.array(f["halos"]["center"])
-com_star=np.array(f["halos"]["com_star_100kpc"])
-#star_lumz=np.array(f["halos"]["lumz_3000kpc"])
-ms=np.array(f["halos"]["mass_star_100kpc"])
-msg=np.array(f["halos"]["mass_gas_bound"])
+radius=(np.array(f["r200"]))[halo_id<=0]
+
+mass=np.array(f["mass"])[halo_id<=0]
+
+mbp=(np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T)[halo_id<=0]
+com_star=np.array([f["com_star_100_x"],f["com_star_100_y"],f["com_star_100_z"]]).T
+
+ms=np.array(f["ms_100"])
+#msg=np.array(f["halos"]["mass_gas_bound"])
 f.close()
 
 #ignore all the halos without models of star lum and com
-rs=np.sqrt(com_star[:,0]**2+com_star[:,1]**2+com_star[:,2]**2)
-mask=(rs>-1)
-halo_id=halo_id[mask]
-host_id=host_id[mask]
-mbp=mbp[mask]
-m200=m200[mask]
-com_star=com_star[mask]
-#star_lumz=star_lumz[mask]
-mass=mass[mask]
-radius=radius[mask]
-ms=ms[mask]
-ids=np.arange(0,len(halo_id),1)
-mainhalo_id=ids[(host_id==-1)*(mass>10000)]
+
+mainhalo_id=halo_id[halo_id<=0]
+
 BCGid=np.zeros(len(mainhalo_id))
 BCGoffset=np.zeros(len(mainhalo_id))
 Rbri=np.ones(len(mainhalo_id))
-star_lumz=msg####
+
 '''
 mbp=mbp[(host_id!=-1)]
 com_star=com_star[(host_id!=-1)]
@@ -70,16 +60,16 @@ fig.savefig("/home/jyang/plot/Flamingo/L1000N0900/star_CoM_offset_sub.png")
 '''
 i=0
 
-for id in (mainhalo_id):
+for id in tqdm(mainhalo_id):
   id=int(id)
+  sub_id=halo_id[(halo_id<=-id+1)*(halo_id>=-id)]
 
-  sub_id=ids[host_id==halo_id[id]]
-  mask=np.isin(ids,sub_id)
-  star_lum_sub=star_lumz[mask]#find BCG in mass
+  ms_sub=ms[(halo_id<=-id+1)*(halo_id>=-id)]#find BCG in mass
+  com_sub=com_star[(halo_id<=-id+1)*(halo_id>=-id)]
  
   
 
-  if len(sub_id)==0:
+  if len(ms_sub)==0:
 #    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
 #                                     com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]#the halo doesn't have any subhalo
 
@@ -88,30 +78,32 @@ for id in (mainhalo_id):
     continue
   
 #  hosthalo is not included in the subhalo
-  if star_lumz[id]>=np.max(star_lum_sub):
-#    BCGoffset[i]=fn.radial_distance(com_star[id][0]-mbp[id][0],
-#                                    com_star[id][1]-mbp[id][1],com_star[id][2]-mbp[id][2])/radius[id]
+  if ms[halo_id==id][0]>=np.max(ms_sub):
+    d=com_star[halo_id==id][0]-mbp[-id]
+   
+    BCGoffset[i]=fn.radial_distance(d[0],d[1],d[2])/radius[-id]
 
     BCGid[i]=id
   else:
     
-    BCG_id=sub_id[star_lum_sub==np.max(star_lum_sub)][0]
+    BCG_id=sub_id[np.argmax(ms_sub)]
     BCGid[i]=BCG_id
-#    BCGoffset[i]=fn.radial_distance(com_star[BCG_id][0]-mbp[id][0],
-#                                    com_star[BCG_id][1]-mbp[id][1],com_star[BCG_id][2]-mbp[id][2])/radius[id]
-    Rbri[i]=np.max(star_lum_sub)/star_lumz[id]
-    BCGoffset[i]=fn.radial_distance(mbp[BCG_id][0]-mbp[id][0],
-                                    mbp[BCG_id][1]-mbp[id][1],mbp[BCG_id][2]-mbp[id][2])/radius[id]
+    d=com_sub[np.argmax(ms_sub)]-mbp[-id]
+
+    BCGoffset[i]=fn.radial_distance(d[0],d[1],d[2])/radius[-id]
+#    Rbri[i]=np.max(star_lum_sub)/star_lumz[id]
+    
    
 
   i=i+1
-mass=mass[(host_id==-1)*(mass>10000)]
-mass=np.log10(mass)
-bin_edge=np.linspace(4,5.5,21)
+
+#mass=np.log10(mass)
+bin_edge=10**np.linspace(4,5.5,21)
 bins=np.digitize(mass,bin_edge)
 
 fBCG=np.zeros(len(bin_edge)-1)
 massbin=np.zeros(len(bin_edge)-1)
+'''
 for j in range(0,len(fBCG)):
   suboff=BCGoffset[bins==(j+1)]
   submain=mainhalo_id[bins==(j+1)]
@@ -137,17 +129,25 @@ s.create_dataset("BCGoffset", data=BCGoffset)
 s.create_dataset("Rbri", data=Rbri)
 f.close()
 '''
-title="D of mbp of BCG and central halo, r<3000kpc"  
+title=r"M>10^{14}M_\odot"  
+
 import matplotlib.pyplot as plt
 fig=plt.figure()
 ax=plt.subplot(111)
-ax.set_xlabel("Offset/r200")
-ax.set_ylabel("Counts")
-ax.set_title(title)
+ax.set_xlabel("Distance/r200")
+ax.set_ylabel("Frequency")
+ax.set_title(r"$M>10^{14}M_\odot$"  )
 #for i in range(len(mainhalo_id)):
 #    ax.plot(bin,rho_g[i],color='b')
-ax.hist(BCGoffset,bins=50)
+h1=np.histogram(BCGoffset[(BCGid<=0)*(BCGid!=-1)],bins=10**np.linspace(-4,1,51))
+h2=np.histogram(BCGoffset[BCGid>0],bins=10**np.linspace(-4,1,51))
+
+bin=10**np.linspace(-4,1,51)
+ax.stairs(h1[0]/len(mainhalo_id),h1[1],color='b',label="BCG is center")
+ax.stairs(h2[0]/len(mainhalo_id),h2[1],color='orange',label="BCG is not center")
 ax.set_yscale("log")
+ax.set_xscale("log")
+ax.legend()
+
 #ax.plot(np.logspace(0,4,100),np.logspace(0,4,100)*0.1,color='r')
-fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/BCG_gasmass_3000kpc.png")
-'''
+fig.savefig("/Users/24756376/plot/Flamingo/L1000N0900/BCG_100kpc.png")
