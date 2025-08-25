@@ -4,11 +4,14 @@ import unyt
 import functions as fn
 import h5py
 path="/Users/24756376/data/Flamingo/L1000N0900/"
-id=0
-
-mode=1
+id=-10
+dms=1
+gs=1
+ss=0
+mode="region"
+radius=2#in r200
 dm_ext=[]
-g_ext=["xray_lum_erosita_low","T"]
+g_ext=[]#["xray_lum_erosita_low","T"]
 s_ext=[]
 main_id=fn.halo_ids[fn.halo_ids<=0]
 mainarg=np.argwhere((fn.halo_ids==-id))
@@ -43,54 +46,67 @@ if mode=="sub":
   member_g=np.concatenate(member_g,dtype=np.float16)
   member_s=np.concatenate(member_s,dtype=np.float16)
 
-if mode==1:
-  particle=fn.load_particles(path,id,dm=1,g=1,s=1,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="halo")
-  center=fn.centers[fn.halo_ids==id]
-  print("1")
+if mode=="halo":
+  particle=fn.load_particles(path,id,dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="halo")
   
-if mode==2:
-  particle=fn.load_particles(path,id,dm=1,g=1,s=1,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="cluster")
-  center=center=fn.centers[fn.halo_ids<=0][int(id)]
-  print("2")
+  print("1")
+elif mode=="region":
+  particle=fn.load_regions(path,id,radius*fn.r200[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext})
+else:
+  particle=fn.load_particles(path,id,dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="cluster")
+  
+  print("1")
 
 #extra entry
-Coord_dm=particle[0][0]
-Coord_g=particle[1][0]
-
-Coord_s=particle[2][0]
-if dm_ext!=[]:    
+if dms==1:
+  Coord_dm=particle[0][0]
+  if dm_ext!=[]:    
       for j in range(0,len(dm_ext)):       
         extra_dm.append(particle[0][j+1])
-if g_ext!=[]:    
+if gs==1:
+  Coord_g=particle[1][0]
+  if g_ext!=[]:    
       for j in range(0,len(g_ext)):    
         extra_g.append(particle[1][j+1])
+if ss==1:
+  Coord_s=particle[2][0]
+
+
        
-if s_ext!=[]:    
+  if s_ext!=[]:    
       for j in range(0,len(s_ext)):
          extra_s.append(particle[2][j+1])
 
 if mode =="halo":
   f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
+elif mode=="region":
+  f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r200.hdf5', 'w') 
 else:
   f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'.hdf5', 'w')
-dm = f.create_group("PartType1")
-dm.create_dataset("Coordinates", data=Coord_dm-center)
-if dm_ext!=[]:
-  for i in range(0,len(dm_ext)):
-    dm.create_dataset(dm_ext[i],data=extra_dm[i])
-g = f.create_group("PartType0")
-g.create_dataset("Coordinates", data=Coord_g-center)
-if g_ext!=[]:
-  for i in range(0,len(g_ext)):
+if dms==1:
+  dm = f.create_group("PartType1")
+  dm.create_dataset("Coordinates", data=Coord_dm)
+  if dm_ext!=[]:
+    for i in range(0,len(dm_ext)):
+      dm.create_dataset(dm_ext[i],data=extra_dm[i])
+if gs==1:
+  g = f.create_group("PartType0")
+  g.create_dataset("Coordinates", data=Coord_g)
+  if g_ext!=[]:
+    for i in range(0,len(g_ext)):
     
-    g.create_dataset(g_ext[i],data=extra_g[i])
-st = f.create_group("PartType2")
-st.create_dataset("Coordinates", data=Coord_s-center)
-if s_ext!=[]:
-  for i in range(0,len(s_ext)):
-    st.create_dataset(s_ext[i],data=extra_s[i])
+      g.create_dataset(g_ext[i],data=extra_g[i])
+if ss==1:
+  st = f.create_group("PartType2")
+  st.create_dataset("Coordinates", data=Coord_s)
+  if s_ext!=[]:
+    for i in range(0,len(s_ext)):
+      st.create_dataset(s_ext[i],data=extra_s[i])
 if mode=="sub":
-  dm.create_dataset("member",data=member_dm)
-  g.create_dataset("member",data=member_g)
-  st.create_dataset("member",data=member_s)
+  if dms==1:
+    dm.create_dataset("member",data=member_dm)
+  if gs==1:
+    g.create_dataset("member",data=member_g)
+  if ss==1:
+    st.create_dataset("member",data=member_s)
 f.close()

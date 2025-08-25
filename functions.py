@@ -1,4 +1,5 @@
 #math functions
+#float 32 ,7 digit, 0.1pc
 import numpy as np
 def radial_distance(x, y,z):
     return np.sqrt(x**2 + y**2+z**2)
@@ -132,11 +133,11 @@ N_s_c=np.array(f['N_s_c'])
 #meanT=np.array(f['mean_gas_T'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
-#cross=np.array(f['cross_bound'])
+cross=np.array(f['cross_bound'])
 centers=np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T
 #ms100=np.array(f['mass_star_100kpc'])
 #ms3000=np.array(f['mass_star_1000kpc'])
-#r200=np.array(f["r200"])
+r200=np.array(f["r200"])
 
 f.close()
 
@@ -149,7 +150,7 @@ def load_halo(id,dm=0,g=0,s=0):
    
       arg=np.nonzero(halo_ids==float(id))[0]
       
-      
+    
     
     
       arg=int(arg)
@@ -159,6 +160,7 @@ def load_halo(id,dm=0,g=0,s=0):
         dm_s=int(np.sum(N_dm[0:arg]))
         dm_e=int(np.sum(N_dm[0:arg+1]))
         slide.append(slice(dm_s,dm_e))
+      
       if g==1:
         g_s=int(np.sum(N_g[0:arg]))
         g_e=int(np.sum(N_g[0:arg+1]))
@@ -192,6 +194,7 @@ def load_cluster(id,dm=0,g=0,s=0):
      dm_s=int(np.sum(N_dm_c[0:arg]))
      dm_e=int(np.sum(N_dm_c[0:arg+1]))
      slide.append(slice(dm_s,dm_e))
+    
    #  print(arg)
    if g==1:
       g_s=int(np.sum(N_g_c[0:arg]))
@@ -212,12 +215,14 @@ def load_cluster(id,dm=0,g=0,s=0):
        key.append('stars')
    return key,slide
 # create the slice and then find al the particles in the slice, that save the spae by avoinding loading evertything  
-def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo"):
+def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo"):
    
    if mode=="halo":
       keys,slides=load_halo(id,dm,g,s)
+      center=centers[int(np.nonzero(halo_ids==id)[0])]
    elif mode=="cluster":
       keys,slides=load_cluster(id,dm,g,s)
+      center=centers[halo_ids<=0][-int(id)]
    else:
       raise ValueError("What on earth do you want to do?")
 #   print(keys)
@@ -242,7 +247,7 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
       
       if coordinate==1:
              
-             Coord=np.array(data['Coordinates'][slides[i]],dtype=np.float32)
+             Coord=np.array(data['Coordinates'][slides[i]])-center
            
              comp.append(Coord)
              
@@ -251,6 +256,77 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry=[],mode="halo")
              for entry in extra_entry[keys[i]]:
                
                  entry_data=np.array(data[entry][slides[i]],dtype=np.float32)
+             
+                 comp.append(entry_data)
+#      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
+      
+      particles.append(comp)#particle in shape dm, g, s
+   f.close()      
+      
+   return particles
+
+
+def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):
+   if id>0:#correct id input to 
+      id=-int(id) 
+   else:
+      id=int(id)
+   slide=[]
+   dataset=[]
+   
+   # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
+   f=h5py.File(path+'particles_radius.hdf5','r')
+   
+   if dm==1:
+      
+      dataset.append(f['PartType1'])
+      num_dm=np.array(f['PartType1']['num_p'])
+      dm_s=int(np.sum(num_dm[0:-id]))
+      dm_e=int(np.sum(num_dm[0:-id+1]))
+      slide.append(slice(dm_s,dm_e))
+      
+   if g==1:
+      
+      dataset.append(f['PartType0'])
+      num_g=np.array(f['PartType0']['num_p'])
+      g_s=int(np.sum(num_g[0:-id]))
+      g_e=int(np.sum(num_g[0:-id+1]))
+      slide.append(slice(g_s,g_e))
+   if s==1:
+       
+      dataset.append(f['PartType2'])
+      num_s=np.array(f['PartType2']['num_p'])
+      s_s=int(np.sum(num_s[0:-id]))
+      s_e=int(np.sum(num_s[0:-id+1]))
+      slide.append(slice(s_s,s_e))
+    #load entry keys
+   key=[]
+   if dm==1:
+       key.append('dm')
+   if g==1:
+       key.append('gas')
+   if s==1:
+       key.append('stars')
+   particles=[]
+
+   for i in range(0,len(dataset)):
+      comp=[]
+      data=dataset[i]
+      Coord=np.array(data['Coordinates'][slide[i]])-centers[halo_ids<=0][-id]
+      
+      r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
+      Coord=Coord[r2<radius**2]
+      
+      if coordinate==1:
+             
+             
+             comp.append(Coord)
+             
+             
+      if extra_entry[key[i]]!=[]:
+             for entry in extra_entry[key[i]]:
+               
+                 entry_data=np.array(data[entry][slide[i]],dtype=np.float32)[r2<radius**2]
              
                  comp.append(entry_data)
 #      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
