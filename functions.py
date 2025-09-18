@@ -19,21 +19,46 @@ def spherical_harmonic__1(x, y,z):
 def spherical_harmonic__2(x, y,z):
     r = radial_distance(x, y,z)
     return np.sqrt(15/4/np.pi)*x*y/r**2 
-def quadrupole(x, y,z,num_particles):
+def quadrupole(x, y,z):
     r = radial_distance(x, y,z)
-    f0=np.sum(spherical_harmonic_0(x, y,z)*r)
-    f1=np.sum(spherical_harmonic_1(x, y,z)*r)
-    f2=np.sum(spherical_harmonic_2(x, y,z)*r)
-    f_1=np.sum(spherical_harmonic__1(x, y,z)*r)
-    f_2=np.sum(spherical_harmonic__2(x, y,z)*r)
-    return np.sqrt(f0**2+f1**2+f2**2+f_1**2+f_2**2) / num_particles
+    
+    f0=np.sum(spherical_harmonic_0(x, y,z)*r) / len(r)
+    f1=np.sum(spherical_harmonic_1(x, y,z)*r) / len(r)
+    f2=np.sum(spherical_harmonic_2(x, y,z)*r) / len(r)
+    f_1=np.sum(spherical_harmonic__1(x, y,z)*r) / len(r)
+    f_2=np.sum(spherical_harmonic__2(x, y,z)*r) / len(r)
+    return np.sqrt(f0**2+f1**2+f2**2+f_1**2+f_2**2)
 #dissociation functions of an array of coordinates  
-def dissociation(Coord_dm ,Coord_g):
+def dissociation(Coord_dm ,Coord_g,rdmg):
     x_dm, y_dm, z_dm = Coord_dm[:,0], Coord_dm[:,1], Coord_dm[:,2]
     x_g, y_g, z_g = Coord_g[:,0], Coord_g[:,1], Coord_g[:,2]
     #center of mass
     xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
     xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
+    xc=(xdmc*rdmg+xgc)/(rdmg+1)
+    yc=(ydmc*rdmg+ygc)/(rdmg+1)
+    zc=(zdmc*rdmg+zgc)/(rdmg+1)
+    xdm=np.array(x_dm-xc)   
+    ydm=np.array(y_dm-yc)
+    zdm=np.array(z_dm-zc)
+    xg=np.array(x_g-xc)
+    yg=np.array(y_g-yc)
+    zg=np.array(z_g-zc)
+    n_dm = len(xdm)
+    n_g = len(xg)
+    r_mean_dm = np.average(radial_distance(xdm, ydm,zdm))
+    r_mean_g = np.average(radial_distance(xg, yg,zg))
+    r_max = max(r_mean_dm, r_mean_g)
+    q_dm = quadrupole(xdm, ydm,zdm)
+    q_g = quadrupole(xg, yg, zg)
+    return np.sqrt(4*np.pi/5) * (q_dm - q_g) / r_max
+def dissociation_old(Coord_dm ,Coord_g,rdmg=1):
+    x_dm, y_dm, z_dm = Coord_dm[:,0], Coord_dm[:,1], Coord_dm[:,2]
+    x_g, y_g, z_g = Coord_g[:,0], Coord_g[:,1], Coord_g[:,2]
+    #center of mass
+    xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
+    xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
+   
     xdm=np.array(x_dm-xdmc)   
     ydm=np.array(y_dm-ydmc)
     zdm=np.array(z_dm-zdmc)
@@ -45,8 +70,8 @@ def dissociation(Coord_dm ,Coord_g):
     r_mean_dm = np.average(radial_distance(xdm, ydm,zdm))
     r_mean_g = np.average(radial_distance(xg, yg,zg))
     r_max = max(r_mean_dm, r_mean_g)
-    q_dm = quadrupole(xdm, ydm,zdm, n_dm)
-    q_g = quadrupole(xg, yg, zg,n_g)
+    q_dm = quadrupole(xdm, ydm,zdm)
+    q_g = quadrupole(xg, yg, zg)
     return np.sqrt(4*np.pi/5) * (q_dm - q_g) / r_max
 #offset functions of an array of coordinates, CoM
 def offset(Coord_dm ,Coord_g):
@@ -108,9 +133,10 @@ def massfunction(mass):#in 10^10Msun
 
 
 
-import numpy as np
-import unyt
 
+import unyt
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 
 
 import h5py
@@ -129,19 +155,51 @@ N_s=np.array(f['N_s'])
 N_dm_c=np.array(f['N_dm_c'])
 N_g_c=np.array(f['N_g_c'])
 N_s_c=np.array(f['N_s_c'])
-#input_id=np.array(f['input_ids'])
-#meanT=np.array(f['mean_gas_T'])
+N_dm_region=np.array(f['N_dm_region'])
+N_g_region=np.array(f['N_g_region'])
+N_s_region=np.array(f['N_s_region'])
+N_dm_region_unbound=np.array(f['N_dm_region_unbound'])
+N_g_region_unbound=np.array(f['N_g_region_unbound'])
+N_s_region_unbound=np.array(f['N_s_region_unbound'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
-cross=np.array(f['cross_bound'])
+print(len(mass[mass>100000]))#103 halos with m>10**15
+
 centers=np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T
+r50=np.array(f["r50"])
+r100=np.array(f["r100"])
 #ms100=np.array(f['mass_star_100kpc'])
 #ms3000=np.array(f['mass_star_1000kpc'])
 r200=np.array(f["r200"])
 
 f.close()
 
-
+def check_boundry(Coord):#do this only after recentering
+   
+    x=Coord[:,0]
+    y=Coord[:,1]
+    z=Coord[:,2]
+    if len(x)>0:
+      if np.max(x)-np.min(x)>500:
+        if np.min(x)<-500:
+            Coord[Coord[:,0]<-500,0]+=1000
+        elif np.max(x)>500:
+            Coord[Coord[:,0]>500,0]-=1000
+      if np.max(y)-np.min(y)>500:
+        if np.min(y)<-500:
+            Coord[Coord[:,1]<-500,1]+=1000
+        elif np.max(y)>500:
+            Coord[Coord[:,1]>500,1]-=1000
+      if np.max(z)-np.min(z)>500:
+        if np.min(z)<-500:
+            Coord[Coord[:,2]<-500,2]+=1000
+        elif np.max(z)>500:
+            Coord[Coord[:,2]>500,2]-=1000
+   
+    return Coord
+      
+        
+        
 
 def load_halo(id,dm=0,g=0,s=0):
       """
@@ -186,6 +244,7 @@ def load_cluster(id,dm=0,g=0,s=0):
       id=-int(id) 
       print("warning: this is a satellite, loading the cluster it belongs to")
    arg=np.nonzero(halo_ids[halo_ids<=0]==id)[0]
+   
    arg=int(arg)
    slide=[]
    if dm==1:
@@ -247,8 +306,9 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo")
       
       if coordinate==1:
              
+            
              Coord=np.array(data['Coordinates'][slides[i]])-center
-           
+             Coord=check_boundry(Coord)
              comp.append(Coord)
              
              
@@ -265,41 +325,29 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo")
       
    return particles
 
-
-def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):
-   if id>0:#correct id input to 
-      id=-int(id) 
-   else:
-      id=int(id)
+def load_regions_all(id,dm,g,s):#id is negative
+   arg=int(id)
+   
+   
    slide=[]
-   dataset=[]
-   
-   # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
-   f=h5py.File(path+'particles_radius.hdf5','r')
-   
    if dm==1:
-      
-      dataset.append(f['PartType1'])
-      num_dm=np.array(f['PartType1']['num_p'])
-      dm_s=int(np.sum(num_dm[0:-id]))
-      dm_e=int(np.sum(num_dm[0:-id+1]))
-      slide.append(slice(dm_s,dm_e))
-      
+     
+   
+     dm_s=int(np.sum(N_dm_region[0:-arg]))
+     dm_e=int(np.sum(N_dm_region[0:-arg+1]))
+     slide.append(slice(dm_s,dm_e))
+    
+   #  print(arg)
    if g==1:
-      
-      dataset.append(f['PartType0'])
-      num_g=np.array(f['PartType0']['num_p'])
-      g_s=int(np.sum(num_g[0:-id]))
-      g_e=int(np.sum(num_g[0:-id+1]))
+      g_s=int(np.sum(N_g_region[0:-arg]))
+      g_e=int(np.sum(N_g_region[0:-arg+1]))
       slide.append(slice(g_s,g_e))
    if s==1:
-       
-      dataset.append(f['PartType2'])
-      num_s=np.array(f['PartType2']['num_p'])
-      s_s=int(np.sum(num_s[0:-id]))
-      s_e=int(np.sum(num_s[0:-id+1]))
+      s_s=int(np.sum(N_s_region[0:-arg]))
+      s_e=int(np.sum(N_s_region[0:-arg+1]))
       slide.append(slice(s_s,s_e))
-    #load entry keys
+
+   slide=np.array(slide)
    key=[]
    if dm==1:
        key.append('dm')
@@ -307,15 +355,87 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):
        key.append('gas')
    if s==1:
        key.append('stars')
+   return key,slide
+
+def load_regions_unbound(id,dm,g,s):#id is negative
+   arg=int(id)
+   
+   
+   slide=[]
+   if dm==1:
+     
+   
+     dm_s=int(np.sum(N_dm_region_unbound[0:-arg]))
+     dm_e=int(np.sum(N_dm_region_unbound[0:-arg+1]))
+     slide.append(slice(dm_s,dm_e))
+    
+   #  print(arg)
+   if g==1:
+      g_s=int(np.sum(N_g_region_unbound[0:-arg]))
+      g_e=int(np.sum(N_g_region_unbound[0:-arg+1]))
+      slide.append(slice(g_s,g_e))
+   if s==1:
+      s_s=int(np.sum(N_s_region_unbound[0:-arg]))
+      s_e=int(np.sum(N_s_region_unbound[0:-arg+1]))
+      slide.append(slice(s_s,s_e))
+
+   slide=np.array(slide)
+   key=[]
+   if dm==1:
+       key.append('dm')
+   if g==1:
+       key.append('gas')
+   if s==1:
+       key.append('stars')
+   return key,slide
+def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="all"):
+   if id>0:#correct id input to 
+      id=-int(id) 
+   else:
+      id=int(id)
+   center=centers[halo_ids<=0][-int(id)]
+   if mode=="all":
+      keys,slides=load_regions_all(id,dm,g,s)
+      f=h5py.File(path+'particles_region_ranked.hdf5','r')
+      
+   elif mode=="unbound":
+      keys,slides=load_regions_unbound(id,dm,g,s)
+      f=h5py.File(path+'particles_region_unbound_ranked.hdf5','r')
+      
+   else:
+      raise ValueError("What on earth do you want to do?")
+   # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
+   dataset=[]
+   
+   if dm==1:
+      
+      dataset.append(f['PartType1'])
+   
+
+      
+   if g==1:
+      
+      dataset.append(f['PartType0'])
+      
+
+   if s==1:
+       
+      dataset.append(f['PartType2'])
+  
+  
+    #load entry keys
+
    particles=[]
 
    for i in range(0,len(dataset)):
       comp=[]
       data=dataset[i]
-      Coord=np.array(data['Coordinates'][slide[i]])-centers[halo_ids<=0][-id]
+      Coord=np.array(data['Coordinates'][slides[i]])-centers[halo_ids<=0][-id]
+     
       
       r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
       Coord=Coord[r2<radius**2]
+      Coord=check_boundry(Coord)
       
       if coordinate==1:
              
@@ -323,11 +443,11 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):
              comp.append(Coord)
              
              
-      if extra_entry[key[i]]!=[]:
-             for entry in extra_entry[key[i]]:
-               
-                 entry_data=np.array(data[entry][slide[i]],dtype=np.float32)[r2<radius**2]
-             
+      if extra_entry[keys[i]]!=[]:
+             for entry in extra_entry[keys[i]]:
+                 
+                 entry_data=np.array(data[entry][slides[i]],dtype=np.float32)[r2<radius**2]
+                 
                  comp.append(entry_data)
 #      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
       
@@ -335,3 +455,5 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):
    f.close()      
       
    return particles
+
+
