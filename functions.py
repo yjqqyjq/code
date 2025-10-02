@@ -33,25 +33,35 @@ def dissociation(Coord_dm ,Coord_g,rdmg):
     x_dm, y_dm, z_dm = Coord_dm[:,0], Coord_dm[:,1], Coord_dm[:,2]
     x_g, y_g, z_g = Coord_g[:,0], Coord_g[:,1], Coord_g[:,2]
     #center of mass
-    xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
-    xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
-    xc=(xdmc*rdmg+xgc)/(rdmg+1)
-    yc=(ydmc*rdmg+ygc)/(rdmg+1)
-    zc=(zdmc*rdmg+zgc)/(rdmg+1)
-    xdm=np.array(x_dm-xc)   
-    ydm=np.array(y_dm-yc)
-    zdm=np.array(z_dm-zc)
-    xg=np.array(x_g-xc)
-    yg=np.array(y_g-yc)
-    zg=np.array(z_g-zc)
-    n_dm = len(xdm)
-    n_g = len(xg)
-    r_mean_dm = np.average(radial_distance(xdm, ydm,zdm))
-    r_mean_g = np.average(radial_distance(xg, yg,zg))
-    r_max = max(r_mean_dm, r_mean_g)
-    q_dm = quadrupole(xdm, ydm,zdm)
-    q_g = quadrupole(xg, yg, zg)
-    return np.sqrt(4*np.pi/5) * (q_dm - q_g) / r_max
+    if len(x_dm)==0 or len(x_g)==0:
+        return 0
+    else:
+       
+        xdmc,ydmc,zdmc= center_of_mass(x_dm, y_dm,z_dm)
+    
+        xgc,ygc,zgc= center_of_mass(x_g, y_g,z_g) 
+        xc=(xdmc*rdmg+xgc)/(rdmg+1)
+        yc=(ydmc*rdmg+ygc)/(rdmg+1)
+        zc=(zdmc*rdmg+zgc)/(rdmg+1)
+        xdm=np.array(x_dm-xc)   
+        ydm=np.array(y_dm-yc)
+        zdm=np.array(z_dm-zc)
+        xg=np.array(x_g-xc)
+        yg=np.array(y_g-yc)
+        zg=np.array(z_g-zc)
+        n_dm = len(xdm)
+        n_g = len(xg)
+    
+        r_mean_dm = np.average(radial_distance(xdm, ydm,zdm))
+        q_dm = quadrupole(xdm, ydm,zdm)
+   
+        r_mean_g = np.average(radial_distance(xg, yg,zg))
+        q_g = quadrupole(xg, yg, zg)
+   
+        r_max = max(r_mean_dm, r_mean_g)
+   
+    
+        return np.sqrt(4*np.pi/5) * (q_dm - q_g) / r_max
 def dissociation_old(Coord_dm ,Coord_g,rdmg=1):
     x_dm, y_dm, z_dm = Coord_dm[:,0], Coord_dm[:,1], Coord_dm[:,2]
     x_g, y_g, z_g = Coord_g[:,0], Coord_g[:,1], Coord_g[:,2]
@@ -163,7 +173,7 @@ N_g_region_unbound=np.array(f['N_g_region_unbound'])
 N_s_region_unbound=np.array(f['N_s_region_unbound'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
-print(len(mass[mass>100000]))#103 halos with m>10**15
+print(len(mass[mass>100000]))#103 halos with m>10**15, 659 for m>5*10**14
 
 centers=np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T
 r50=np.array(f["r50"])
@@ -273,6 +283,42 @@ def load_cluster(id,dm=0,g=0,s=0):
    if s==1:
        key.append('stars')
    return key,slide
+
+def load_satellite(id,dm=0,g=0,s=0):
+  
+   if id>0:
+      id=-int(id) 
+      print("warning: this is a satellite, loading the cluster it belongs to")
+   arg=np.nonzero(halo_ids[halo_ids<=0]==id)[0]
+   
+   arg=int(arg)
+   slide=[]
+   if dm==1:
+     
+   
+     dm_s=int(np.sum(N_dm_c[0:arg])+N_dm[halo_ids==id])
+     dm_e=int(np.sum(N_dm_c[0:arg+1]))
+     slide.append(slice(dm_s,dm_e))
+    
+   #  print(arg)
+   if g==1:
+      g_s=int(np.sum(N_g_c[0:arg])+N_g[halo_ids==id])
+      g_e=int(np.sum(N_g_c[0:arg+1]))
+      slide.append(slice(g_s,g_e))
+   if s==1:
+      s_s=int(np.sum(N_s_c[0:arg])+N_s[halo_ids==id])
+      s_e=int(np.sum(N_s_c[0:arg+1]))
+      slide.append(slice(s_s,s_e))
+
+   slide=np.array(slide)
+   key=[]
+   if dm==1:
+       key.append('dm')
+   if g==1:
+       key.append('gas')
+   if s==1:
+       key.append('stars')
+   return key,slide
 # create the slice and then find al the particles in the slice, that save the spae by avoinding loading evertything  
 def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo"):
    
@@ -281,6 +327,9 @@ def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo")
       center=centers[int(np.nonzero(halo_ids==id)[0])]
    elif mode=="cluster":
       keys,slides=load_cluster(id,dm,g,s)
+      center=centers[halo_ids<=0][-int(id)]
+   elif mode=="satellite":
+      keys,slides=load_satellite(id,dm,g,s)
       center=centers[halo_ids<=0][-int(id)]
    else:
       raise ValueError("What on earth do you want to do?")
@@ -431,7 +480,7 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
       comp=[]
       data=dataset[i]
       Coord=np.array(data['Coordinates'][slides[i]])-centers[halo_ids<=0][-id]
-     
+#      print(np.array(data['Coordinates'][slides[i]]),centers[halo_ids<=0][-id])
       
       r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
       Coord=Coord[r2<radius**2]
@@ -453,7 +502,7 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
       
       particles.append(comp)#particle in shape dm, g, s
    f.close()      
-      
+   
    return particles
 
 

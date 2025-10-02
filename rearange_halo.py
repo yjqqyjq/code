@@ -6,7 +6,7 @@ from tqdm import tqdm
 import sys
 #Qpath="/Users/24756376//data/Colibre/L0012N0094/"
 path="/Users/24756376/data/Flamingo/L1000N0900/"
-f=h5py.File(path+'halos.hdf5','r')
+f=h5py.File(path+'halos_cen13.hdf5','r')
 table=[]
 masskey=0
 keys=[]
@@ -64,7 +64,7 @@ table_new=table[:,mask]
 
 #print(id_comb)
 #print(id_comb)
-f=h5py.File(path+'halos_ranked.hdf5','w')
+f=h5py.File(path+'halos_cen13_ranked.hdf5','w')
 f.create_dataset("id",data=id_comb[mask])
 for i in range(0,len(table_new)):
   if keys[i]=="hostid" or keys[i]=="id":

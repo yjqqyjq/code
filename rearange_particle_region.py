@@ -112,6 +112,7 @@ for key in f['PartType1'].keys():
         i_dm=i_dm+1
 dm_new=np.array(PartType1)[:,mask_dm]
 for key in f['PartType0'].keys():
+      
       if key=='members':
          continue   
       if key=='Coordinates':
@@ -139,9 +140,11 @@ for key in f['PartType0'].keys():
          
 
       else:
+        
         keys_g.append((str(key)))
         PartType0.append(np.array(f['PartType0'][str(key)],dtype=np.float32))
         i_g=i_g+1
+print(keys_g)
 gas_new=np.array(PartType0)[:,mask_g]
 for key in f['PartType2'].keys():
       if key=='members':
@@ -186,7 +189,7 @@ f.close()
 #print(id_comb)
 #print(id_comb)
 #save the data to new file
-
+'''
 f=h5py.File(path+'halos_ranked.hdf5','a')
 del f["N_g_region"]
 del f["N_dm_region"]
@@ -195,27 +198,32 @@ f.create_dataset("N_g_region",data=N_g)
 f.create_dataset("N_dm_region",data=N_dm)
 f.create_dataset("N_s_region",data=N_s)
 f.close()
-
+'''
 f=h5py.File(path+'particles_region_ranked.hdf5','w')
 dm=f.create_group("PartType1")
 for j in range(0,len(dm_new)):
-    if keys_dm[j]=="Coordinates" or "Velocities":
+    if keys_dm[j]=="Coordinates" or keys_dm[j]=="Velocities":
         continue
-    dm.create_dataset(keys_dm[j],data=dm_new[j])
+    else:
+      dm.create_dataset(keys_dm[j],data=dm_new[j])
 dm.create_dataset("Coordinates",data=np.array([dm_new[cokey_dm],dm_new[cokey_dm+1],dm_new[cokey_dm+2]]).T)
 dm.create_dataset("Velocities",data=np.array([dm_new[vkey_dm],dm_new[vkey_dm+1],dm_new[vkey_dm+2]]).T)
 g=f.create_group("PartType0")
 for j in range(0,len(gas_new)):
-    if keys_g[j]=="Coordinates" or "Velocities":
+    print(j,keys_g[j],len(gas_new))
+    if keys_g[j]=="Coordinates" or keys_g[j]=="Velocities":
         continue
-    g.create_dataset(keys_g[j],data=gas_new[j])
+    else:
+      print(keys_g[j],gas_new[j])
+      g.create_dataset(keys_g[j],data=gas_new[j])
 g.create_dataset("Coordinates",data=np.array([gas_new[cokey_g],gas_new[cokey_g+1],gas_new[cokey_g+2]]).T)
 g.create_dataset("Velocities",data=np.array([gas_new[vkey_g],gas_new[vkey_g+1],gas_new[vkey_g+2]]).T)
 s=f.create_group("PartType2")
 for j in range(0,len(star_new)):
-    if keys_s[j]=="Coordinates" or "Velocities":
+    if keys_s[j]=="Coordinates" or keys_s[j]=="Velocities":
         continue
-    s.create_dataset(keys_s[j],data=star_new[j])
+    else:
+      s.create_dataset(keys_s[j],data=star_new[j])
 s.create_dataset("Coordinates",data=np.array([star_new[cokey_s],star_new[cokey_s+1],star_new[cokey_s+2]]).T)
 s.create_dataset("Velocities",data=np.array([star_new[vkey_s],star_new[vkey_s+1],star_new[vkey_s+2]]).T)
 f.close()

@@ -86,7 +86,7 @@ print("finish sorting")
 member_dm=[]
 member_g=[]
 member_s=[] 
-'''
+
 f=h5py.File(path+'halos_ranked.hdf5','a')
 #f.create_dataset("N_g",data=N_g)
 #f.create_dataset("N_dm",data=N_dm)
@@ -251,3 +251,4 @@ s.create_dataset("Velocities",data=np.array([star_new[vkey_s],star_new[vkey_s+1]
 f.close()
 
 
+'''

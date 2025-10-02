@@ -13,7 +13,7 @@ print(datetime.datetime.now())
 
 dir='/Users/24756376/data/Flamingo/L1000N0900/halos/'
 
-for i in tqdm(range(0,100)):
+def comb(i):
   f=h5py.File(dir+str(-i)+"_no_sat.hdf5",'w')
   dm=f.create_group("PartType1")
   g=f.create_group("PartType0")
@@ -33,4 +33,4 @@ for i in tqdm(range(0,100)):
   fu.close()
   fc.close()
   f.close()
-    
+comb(141)

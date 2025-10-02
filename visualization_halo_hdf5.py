@@ -14,10 +14,11 @@ def vis(id):
   dms=1
   gs=1
   ss=0
-  mode="halor"
-  radius=1#in r200
+  mode="region"#"halo","region","unbound","sub","cluster"
+ 
+  radius=5#in r200
   dm_ext=["Velocities"]
-  g_ext=["Velocities"]#["xray_lum_erosita_low","T"]
+  g_ext=["Temperatures"]#["xray_lum_erosita_low","T"]
   s_ext=[]
   main_id=fn.halo_ids[fn.halo_ids<=0]
   mainarg=np.argwhere((fn.halo_ids==-id))
@@ -51,8 +52,9 @@ def vis(id):
     member_dm=np.concatenate(member_dm,dtype=np.float16)
     member_g=np.concatenate(member_g,dtype=np.float16)
     member_s=np.concatenate(member_s,dtype=np.float16)
-
-  if mode=="halo" or "halor":
+  
+  if mode=="halo" or mode=="halor":
+    
     particle=fn.load_particles(path,id,dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="halo")
     particles=[]
     if mode=="halor":
@@ -63,7 +65,7 @@ def vis(id):
          
           r=particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2
           r=np.sqrt(r)
-          data.append(particle[0][i][r<fn.r100[fn.halo_ids<=0][-id]])
+          data.append(particle[0][i][r<fn.r200[fn.halo_ids<=0][-id]])
         particles.append(data)
       if gs==1:
         data=[]
@@ -72,7 +74,7 @@ def vis(id):
          
           r=particle[1][0][:,0]**2+particle[1][0][:,1]**2+particle[1][0][:,2]**2
           r=np.sqrt(r)
-          data.append(particle[1][i][r<fn.r100[fn.halo_ids<=0][-id]])
+          data.append(particle[1][i][r<fn.r200[fn.halo_ids<=0][-id]])
         particles.append(data)
       if ss==1:
         data=[]
@@ -84,15 +86,18 @@ def vis(id):
           data.append(particle[2][i][r<fn.r100[fn.halo_ids<=0][-id]])
         particles.append(data)
       particle=particles
-    print("1")
+      
   elif mode=="region":
-    particle=fn.load_regions(path,id,radius*fn.r100[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="all")
+    
+#    print(fn.r100[fn.halo_ids<=0][-id])
+    particle=fn.load_regions(path,id,radius*fn.r200[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="all")
   elif mode=="unbound":
-    particle=fn.load_regions(path,id,radius*fn.r100[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="unbound")
+    particle=fn.load_regions(path,id,radius*fn.r200[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="unbound")
   else:
+    
     particle=fn.load_particles(path,id,dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="cluster")
   
-    print("1")
+    
 
 #extra entry
   if dms==1:
@@ -127,9 +132,9 @@ def vis(id):
   if mode =="halo":
     f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
   elif mode=="region":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r100.hdf5', 'w') 
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r200.hdf5', 'w') 
   elif mode=="unbound":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r100_unbound.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r200_unbound.hdf5', 'w')
   else:
     f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'.hdf5', 'w')
   if dms==1:
@@ -162,3 +167,4 @@ def vis(id):
 
 for i in tqdm(range(0,101)):
   vis(-i)
+#vis(-116)
