@@ -14,11 +14,11 @@ def vis(id):
   dms=1
   gs=1
   ss=0
-  mode="region"#"halo","region","unbound","sub","cluster"
+  mode="unbound"#"halo","region","unbound","sub","cluster"
  
   radius=5#in r200
   dm_ext=["Velocities"]
-  g_ext=["Temperatures"]#["xray_lum_erosita_low","T"]
+  g_ext=[]#["xray_lum_erosita_low","T"]
   s_ext=[]
   main_id=fn.halo_ids[fn.halo_ids<=0]
   mainarg=np.argwhere((fn.halo_ids==-id))
@@ -165,6 +165,6 @@ def vis(id):
       st.create_dataset("member",data=member_s)
   f.close()
 
-for i in tqdm(range(0,101)):
-  vis(-i)
-#vis(-116)
+#for i in tqdm(range(0,101)):
+#  vis(-i)
+vis(-116)

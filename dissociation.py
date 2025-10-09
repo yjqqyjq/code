@@ -37,19 +37,26 @@ f=h5py.File(path+'S_dist.hdf5','r')
 peak=np.array(f["bar_peak"])
 
 f.close()
-bins=np.linspace(0.5,2.5,21)
+bins=np.linspace(0,1.5,16)
 bin=(bins[1:]+bins[:-1])/2
-S_sat=np.zeros((len(halo_ids[halo_ids<=0]),20))
+S_sat=np.zeros((len(halo_ids[halo_ids<=0]),15))
 main_id=halo_ids[halo_ids<=0]
 main_r200=fn.r50[halo_ids<=0]
+
 for i in tqdm(range(len(S_sat))):
-    
-      particle=fn.load_regions(path,main_id[i].astype(int),5*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
+#      particle=fn.load_regions(path,main_id[i].astype(int),5*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
+      particle_ub=fn.load_regions(path,main_id[i].astype(int),5*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="unbound")
+      
+      particle_in=fn.load_particles(path,main_id[i].astype(int),dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="halo")
+      
+      particle=[[np.concatenate([particle_in[0][0],particle_ub[0][0]],axis=0)],[np.concatenate([particle_in[1][0],particle_ub[1][0]],axis=0)]]
+#      particle=particle_ub
       rdm=np.sqrt(particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2)/main_r200[i]
       rg=np.sqrt(particle[1][0][:,0]**2+particle[1][0][:,1]**2+particle[1][0][:,2]**2)/main_r200[i]#the center is the center of the halo
-      for j in range(20):
-        S_sat[i][j]=fn.dissociation(particle[0][0][(rdm<bins[j])],particle[1][0][(rg<bins[j])],rdmg=1)#accumulate within r
       
+      for j in range(15):
+        S_sat[i][j]=fn.dissociation(particle[0][0][(rdm<bins[j+1])],particle[1][0][(rg<bins[j+1])],rdmg=1)#accumulate within r
+     
 
 '''
     particle_200=fn.load_regions(path,main_id[i].astype(int),fn.r200[fn.halo_ids<=0][main_id[i].astype(int)],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]})
@@ -106,9 +113,9 @@ for i in tqdm(range(len(S_sat))):
 #h=np.histogram(S[S>-10],bins=100)
 #print((h[1][1:]+h[1][-1:])/2)
 
-f=h5py.File(path+'S_compare.hdf5','a')
-del f["S_distance"]
-f.create_dataset("S_distance",data=S_sat)
+f=h5py.File(path+'S_compare_inside.hdf5','a')
+del f["S_distance_sat"]
+f.create_dataset("S_distance_sat",data=S_sat)
 #f.create_dataset("S_r50",data=S_50)
 #f.create_dataset("S_r100",data=S_100)
 #f.create_dataset("S_r200",data=S_200)

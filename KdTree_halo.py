@@ -81,12 +81,3 @@ f=h5py.File("/Users/24756376/data/Flamingo/L1000N0900/neighbour.hdf5", 'w')
 f.create_dataset("index",data=i)
 f.create_dataset("distance",data=d)
 f.close()
-'''
-file="/Users/24756376/data/Flamingo/L1000N0900/Trees/halos.joblib"
-index,D=joblib.load(file)
-D=D[0:11965]/r100
-print(np.histogram(D,bins=20))
-print(np.argwhere(D<1))
-print(D[np.argwhere(D<1)])
-
-'''

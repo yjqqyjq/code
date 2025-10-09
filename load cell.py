@@ -2,19 +2,27 @@
 import swiftsimio as sw
 import numpy as np
 import h5py
-
+from multiprocessing import Pool
+import tracemalloc
 
 def load_cell(i):
-    
-  return 0
-
-if __name__ == "__main__":
-  data_dir="/Users/24756376/data/Flamingo/L1000N0900/test/flamingo_0077.0.hdf5"
+  center=centers[i]
+  length=cell_length
+  mask = sw.mask(data_dir)
+  load_region=[[center[0]-length/2,center[0]+length/2],[center[1]-length/2,center[1]+length/2],[center[2]-length/2,center[2]+length/2]] 
+  mask.constrain_spatial(load_region)
+  sw.subset_writer.write_subset("/data/L1000N1800/Nocool/cell"+str(int(i))+".hdf5", mask)
+  print(tracemalloc.get_traced_memory())
   
-  dir="/Users/24756376/data/Flamingo/L1000N0900/halo_catalogue/halo_properties_0077.hdf5"
+if __name__ == "__main__":
+  tracemalloc.start()
+  data_dir="/cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_ADIABATIC/SOAP-HBT/flamingo_0077.hdf5"
+  
+  dir="/cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_ADIABATIC/SOAP-HBT/halo_properties_0077.hdf5"
   f=h5py.File(data_dir,'r')
   cell_length=float(f["Cells"]["Centres"][0][0]*2)
   cell_center=np.array(f["Cells"]["Centres"])
+  cell_counts=np.array(f["Cells"]["Counts"])
   cell_num=32
  
 
@@ -27,6 +35,12 @@ if __name__ == "__main__":
 
   mask=(host_id==-1)*(mass>10000)
   centers=np.array(data_h.input_halos.halo_centre)[mask]
+  
   n_cell=centers[:,2]//cell_length+(centers[:,1]//cell_length)*cell_num+(centers[:,0]//cell_length)*cell_num*cell_num
   n_cell=np.unique(n_cell).astype(int)#cell list
-  print(len(np.unique(n_cell)))
+  centers=centers[n_cell]
+  '''
+  with Pool(32) as p: # Create a pool with 5 worker processes
+    p.map(load_cell, range(0,len(n_cell)))
+  '''
+  tracemalloc.stop()
