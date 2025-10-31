@@ -4,7 +4,7 @@ import unyt
 import functions as fn
 import h5py
 from tqdm import tqdm
-path="/Users/24756376/data/Flamingo/L1000N0900/"
+path="/Users/24756376/data/Flamingo/L1000N1800_NoCool/"
 
 #[1815 5673 6402  836 2113 9249 9065 4356 2852 4957]
 #[2.08984375 1.49609375 1.44921875 2.11328125 1.859375   1.32421875
@@ -14,11 +14,11 @@ def vis(id):
   dms=1
   gs=1
   ss=0
-  mode="unbound"#"halo","region","unbound","sub","cluster"
+  mode="region"#"halo","region","unbound","sub","cluster"
  
-  radius=5#in r200
-  dm_ext=["Velocities"]
-  g_ext=[]#["xray_lum_erosita_low","T"]
+  radius=2.5#in r200
+  dm_ext=[]
+  g_ext=[]#"Temperatures"]#["xray_lum_erosita_low","T"]
   s_ext=[]
   main_id=fn.halo_ids[fn.halo_ids<=0]
   mainarg=np.argwhere((fn.halo_ids==-id))
@@ -90,9 +90,9 @@ def vis(id):
   elif mode=="region":
     
 #    print(fn.r100[fn.halo_ids<=0][-id])
-    particle=fn.load_regions(path,id,radius*fn.r200[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="all")
+    particle=fn.load_regions(path,id,radius*fn.r50[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="all")
   elif mode=="unbound":
-    particle=fn.load_regions(path,id,radius*fn.r200[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="unbound")
+    particle=fn.load_regions(path,id,radius*fn.r50[fn.halo_ids<=0][-id],dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="unbound")
   else:
     
     particle=fn.load_particles(path,id,dm=dms,g=gs,s=ss,coordinate=1,extra_entry={"dm":dm_ext,"gas":g_ext,"stars":s_ext},mode="cluster")
@@ -130,13 +130,13 @@ def vis(id):
             extra_s.append(particle[2][j+1])
 
   if mode =="halo":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
   elif mode=="region":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r200.hdf5', 'w') 
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50.hdf5', 'w') 
   elif mode=="unbound":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r200_unbound.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50_unbound.hdf5', 'w')
   else:
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N0900/halos/'+str(int(id))+'.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'.hdf5', 'w')
   if dms==1:
     dm = f.create_group("PartType1")
     dm.create_dataset("Coordinates", data=Coord_dm)
@@ -165,6 +165,16 @@ def vis(id):
       st.create_dataset("member",data=member_s)
   f.close()
 
-#for i in tqdm(range(0,101)):
-#  vis(-i)
-vis(-116)
+for i in [1375,1673]:#  138 ,  174 ,  483 , 1004 , 1001 , 1066,  1295 , 1063, 1309,  1718,  1651,  1835,
+#  2044,  2340,  2394,  2424,  2734,  4012 , 4295,  4790,  4661 , 4933,  4961,  6258,
+#  6571,  6322 , 7200 , 6838,  7289 , 7944,  7746,  8574 , 8530,  9159,  6963, 9717,
+# 10246, 11321]:
+   vis(-i)
+
+#delta S >0.2 L1000N1800
+#[  130 ,  152  , 498  , 987 , 1041,  1073,  1088,  1093,  1130 , 1688 , 1730 , 1766,
+#  1875 , 2150  ,2454 , 2527,  2573,  3786 , 4300 , 4527 , 4593 , 4766,  4874,  5104,
+#  6268,  6382,  6842,  6921 , 7424,  7498 , 7716,  8494, 8496 , 8634,  8804 , 9500,
+# 10151 ,10278]:
+  
+#vis(-1303)

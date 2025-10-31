@@ -144,7 +144,7 @@ for key in f['PartType0'].keys():
         keys_g.append((str(key)))
         PartType0.append(np.array(f['PartType0'][str(key)],dtype=np.float32))
         i_g=i_g+1
-print(keys_g)
+
 gas_new=np.array(PartType0)[:,mask_g]
 for key in f['PartType2'].keys():
       if key=='members':
@@ -189,7 +189,7 @@ f.close()
 #print(id_comb)
 #print(id_comb)
 #save the data to new file
-'''
+
 f=h5py.File(path+'halos_ranked.hdf5','a')
 del f["N_g_region"]
 del f["N_dm_region"]
@@ -227,3 +227,4 @@ for j in range(0,len(star_new)):
 s.create_dataset("Coordinates",data=np.array([star_new[cokey_s],star_new[cokey_s+1],star_new[cokey_s+2]]).T)
 s.create_dataset("Velocities",data=np.array([star_new[vkey_s],star_new[vkey_s+1],star_new[vkey_s+2]]).T)
 f.close()
+'''

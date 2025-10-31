@@ -1,5 +1,6 @@
 #math functions
 #float 32 ,7 digit, 0.1pc
+#Bullet clusters Can; 8
 import numpy as np
 def radial_distance(x, y,z):
     return np.sqrt(x**2 + y**2+z**2)
@@ -155,29 +156,34 @@ from tqdm import tqdm
 
 #work with SOAP
 #load the data
-path="/Users/24756376/data/Flamingo/L1000N0900/"
+path="/Users/24756376/data/Flamingo/L1000N1800_NoCool/"
 
 f=h5py.File(path+'halos_ranked.hdf5','r')
 N_g=np.array(f['N_g'])
 
 N_dm=np.array(f['N_dm'])
-N_s=np.array(f['N_s'])
+#N_s=np.array(f['N_s'])
 N_dm_c=np.array(f['N_dm_c'])
 N_g_c=np.array(f['N_g_c'])
-N_s_c=np.array(f['N_s_c'])
+#N_s_c=np.array(f['N_s_c'])
 N_dm_region=np.array(f['N_dm_region'])
 N_g_region=np.array(f['N_g_region'])
-N_s_region=np.array(f['N_s_region'])
+#N_s_region=np.array(f['N_s_region'])
+
 N_dm_region_unbound=np.array(f['N_dm_region_unbound'])
 N_g_region_unbound=np.array(f['N_g_region_unbound'])
-N_s_region_unbound=np.array(f['N_s_region_unbound'])
+#N_s_region_unbound=np.array(f['N_s_region_unbound'])
 halo_ids=np.array(f['id'])
 mass=np.array(f['mass'])
-print(len(mass[mass>100000]))#103 halos with m>10**15, 659 for m>5*10**14
+N_s=np.zeros(len(N_dm))
+N_s_c=np.zeros(len(N_dm_c))
+N_s_region=np.zeros(len(N_dm_c))
+N_s_region_unbound=np.zeros(len(N_dm_c))
+#103 halos with m>10**15, 659 for m>5*10**14
 
 centers=np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T
 r50=np.array(f["r50"])
-r100=np.array(f["r100"])
+#r100=np.array(f["r100"])
 #ms100=np.array(f['mass_star_100kpc'])
 #ms3000=np.array(f['mass_star_1000kpc'])
 r200=np.array(f["r200"])
@@ -480,11 +486,14 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
       comp=[]
       data=dataset[i]
       Coord=np.array(data['Coordinates'][slides[i]])-centers[halo_ids<=0][-id]
-#      print(np.array(data['Coordinates'][slides[i]]),centers[halo_ids<=0][-id])
-      
-      r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
-      Coord=Coord[r2<radius**2]
+#      
       Coord=check_boundry(Coord)
+      r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
+      
+      Coord=Coord[r2<radius**2]
+      
+      
+      
       
       if coordinate==1:
              
@@ -495,7 +504,7 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
       if extra_entry[keys[i]]!=[]:
              for entry in extra_entry[keys[i]]:
                  
-                 entry_data=np.array(data[entry][slides[i]],dtype=np.float32)[r2<radius**2]
+                 entry_data=np.array(data[entry][slides[i]],dtype=data[entry][0].dtype)[r2<radius**2]
                  
                  comp.append(entry_data)
 #      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
