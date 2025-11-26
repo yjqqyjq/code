@@ -1,10 +1,10 @@
 #visualization hdf5
 import numpy as np
 import unyt
-import functions as fn
+import functions_13 as fn
 import h5py
 from tqdm import tqdm
-path="/Users/24756376/data/Flamingo/L1000N1800_NoCool/"
+path="/Users/24756376/data/Flamingo/L1000N1800/"
 
 #[1815 5673 6402  836 2113 9249 9065 4356 2852 4957]
 #[2.08984375 1.49609375 1.44921875 2.11328125 1.859375   1.32421875
@@ -14,9 +14,9 @@ def vis(id):
   dms=1
   gs=1
   ss=0
-  mode="region"#"halo","region","unbound","sub","cluster"
+  mode="cluster"#"halo","region","unbound","sub","cluster"
  
-  radius=2.5#in r200
+  radius=2#in r200
   dm_ext=[]
   g_ext=[]#"Temperatures"]#["xray_lum_erosita_low","T"]
   s_ext=[]
@@ -130,13 +130,13 @@ def vis(id):
             extra_s.append(particle[2][j+1])
 
   if mode =="halo":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800/halos/'+str(f"{np.float32(id):.2f}")+'.hdf5', 'w')
   elif mode=="region":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50.hdf5', 'w') 
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50.hdf5', 'w') 
   elif mode=="unbound":
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50_unbound.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800/halos/'+str(int(id))+'_'+str(np.float16(radius))+'_r50_unbound.hdf5', 'w')
   else:
-    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos/'+str(int(id))+'.hdf5', 'w')
+    f = h5py.File('/Users/24756376/data/Flamingo/L1000N1800/halos/'+str(int(id))+'.hdf5', 'w')
   if dms==1:
     dm = f.create_group("PartType1")
     dm.create_dataset("Coordinates", data=Coord_dm)
@@ -165,7 +165,7 @@ def vis(id):
       st.create_dataset("member",data=member_s)
   f.close()
 
-for i in [1375,1673]:#  138 ,  174 ,  483 , 1004 , 1001 , 1066,  1295 , 1063, 1309,  1718,  1651,  1835,
+for i in [0,1,2]:#  138 ,  174 ,  483 , 1004 , 1001 , 1066,  1295 , 1063, 1309,  1718,  1651,  1835,
 #  2044,  2340,  2394,  2424,  2734,  4012 , 4295,  4790,  4661 , 4933,  4961,  6258,
 #  6571,  6322 , 7200 , 6838,  7289 , 7944,  7746,  8574 , 8530,  9159,  6963, 9717,
 # 10246, 11321]:

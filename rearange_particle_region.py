@@ -16,7 +16,7 @@ from collections import Counter
 
 
 print(datetime.datetime.now())
-path="/Users/24756376/data/Flamingo/L1000N0900/"
+path="/Users/24756376/data/Flamingo/L1000N1800/"
 #path="/home/jyang/Colibre/L0012N0094/"
 
 tracemalloc.start()

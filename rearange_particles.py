@@ -31,6 +31,7 @@ f=h5py.File(path+'cluster_particles.hdf5','r')
 member_dm=np.array(f['PartType1']['member'],dtype=np.int32)
 member_g=np.array(f['PartType0']['member'],dtype=np.int32)
 member_s=np.array(f['PartType2']['member'],dtype=np.int32)
+print(len(member_dm))
 f.close()
   
 
@@ -82,11 +83,11 @@ for i in tqdm(range(0,len(id[id<=0]))):
     N_s_c[i]=np.sum(N_s[i_s:i_e])
 
 print("finish sorting")
-
+print(N_dm,N_dm_c)
 member_dm=[]
 member_g=[]
 member_s=[] 
-
+'''
 f=h5py.File(path+'halos_ranked.hdf5','a')
 #f.create_dataset("N_g",data=N_g)
 #f.create_dataset("N_dm",data=N_dm)
@@ -97,7 +98,7 @@ f.create_dataset("N_s_c",data=N_s_c)
 f.close()
 
 
-'''
+
 print(tracemalloc.get_traced_memory())
 tracemalloc.stop()
 print(datetime.datetime.now())

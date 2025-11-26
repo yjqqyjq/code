@@ -20,13 +20,7 @@ import sys
 path="/Users/24756376/data/Flamingo/L1000N1800/"
 
 halo_ids=fn.halo_ids
-'''
 
-qdm_m=np.ones(len(halo_ids[halo_ids<=0]))
-qdm_c=np.ones(len(halo_ids[halo_ids<=0]))
-qdm_r=np.ones(len(halo_ids[halo_ids<=0]))
-qdm_rm=np.ones(len(halo_ids[halo_ids<=0]))
-'''
 
 bins=np.linspace(0,1,11)
 bin=(bins[1:]+bins[:-1])/2
@@ -34,16 +28,16 @@ bin=(bins[1:]+bins[:-1])/2
 main_id=halo_ids[halo_ids<=0]
 main_r200=fn.r50[halo_ids<=0]
 S_dist=np.zeros((len(halo_ids[halo_ids<=0]),len(bin)))
-S_g=np.zeros(len(halo_ids[halo_ids<=0]))
+S_50=np.zeros(len(halo_ids[halo_ids<=0]))
 S_rm=np.zeros(len(halo_ids[halo_ids<=0]))
-for i in tqdm(range(len(S_g))):
-      particle=fn.load_regions(path,main_id[i].astype(int),main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
+for i in tqdm(range(len(S_50))):
+      particle=fn.load_regions(path,main_id[i].astype(int),2.5*main_r200[i],dm=0,g=0,s=1,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
 #      particle_ub=fn.load_regions(path,main_id[i].astype(int),1*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="unbound")
    
 #      particle_c=fn.load_particles(path,main_id[i].astype(int),dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="halo")
-      rdm=np.sqrt(particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2)/main_r200[i]
+#      rdm=np.sqrt(particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2)/main_r200[i]
       
-      rg=np.sqrt(particle[1][0][:,0]**2+particle[1][0][:,1]**2+particle[1][0][:,2]**2)/main_r200[i]
+#      rg=np.sqrt(particle[1][0][:,0]**2+particle[1][0][:,1]**2+particle[1][0][:,2]**2)/main_r200[i]
 #      particle_c=[[particle_c[0][0][rdm<1]],[particle_c[1][0][rg<1]]]
 
 #      particle_m=fn.load_particles(path,main_id[i].astype(int),dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
@@ -51,32 +45,16 @@ for i in tqdm(range(len(S_g))):
 #      particle_r=fn.load_regions(path,main_id[i].astype(int),2*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
 #      particle=particle_ub
     
-#      rdm=np.sqrt(particle_m[0][0][:,0]**2+particle_m[0][0][:,1]**2+particle_m[0][0][:,2]**2)/main_r200[i]
+      rs=np.sqrt(np.sum(particle[0][0]**2,axis=1))/main_r200[i]
+      rs=np.sort(rs)
+      print(np.percentile(rs,90))
+
+
+#      S_50[i]=fn.dissociation(particle[0][0],particle[1][0],rdmg=1)
+
       
-#      rg=np.sqrt(particle_m[1][0][:,0]**2+particle_m[1][0][:,1]**2+particle_m[1][0][:,2]**2)/main_r200[i]#the center is the center of the halo
-#      particle_m=[[particle_m[0][0][rdm<1]],[particle_m[1][0][rg<1]]]
-#      particle_dm_c=np.concatenate([particle_c[0][0],particle_ub[0][0]],axis=0)
-#      particle_dm_m=np.concatenate([particle_m[0][0],particle_ub[0][0]],axis=0)
-#      particle_g_c=np.concatenate([particle_c[1][0],particle_ub[1][0]],axis=0)
-#      particle_m=[[np.concatenate([particle_c[0][0],particle_ub[0][0]],axis=0)],[np.concatenate([particle_c[1][0],particle_ub[1][0]],axis=0)]]
-#      particle_c=[[np.concatenate([particle_c[0][0],particle_ub[0][0]],axis=0)],[np.concatenate([particle_c[1][0],particle_ub[1][0]],axis=0)]]
-#      rdm_m=np.sqrt(particle_m[0][0][:,0]**2+particle_m[0][0][:,1]**2+particle_m[0][0][:,2]**2)/main_r200[i]
-      
-#      rg_m=np.sqrt(particle_m[1][0][:,0]**2+particle_m[1][0][:,1]**2+particle_m[1][0][:,2]**2)/main_r200[i]#the center is the center of the halo
-#      rdm_c=np.sqrt(particle_c[0][0][:,0]**2+particle_c[0][0][:,1]**2+particle_c[0][0][:,2]**2)/main_r200[i]
-      
-#      rg_c=np.sqrt(particle_c[1][0][:,0]**2+particle_c[1][0][:,1]**2+particle_c[1][0][:,2]**2)/main_r200[i]
-#      particle_m=[[particle_m[0][0][rdm_m<1]],[particle_m[1][0][rg_m<1]]]
-#      S_dm[i]=fn.dissociation(particle[0][0],np.array([[0,0,0],[0,0,0]]),rdmg=1)
-#      S_g[i]=fn.dissociation(particle[1][0],np.array([[0,0,0],[0,0,0]]),rdmg=1)
-#      S_rm[i]=fn.dissociation(particle_m[0][0],particle_m[1][0],rdmg=1)
-#      x,y,z=fn.center_of_mass(particle[0][0][:,0],particle[0][0][:,1],particle[0][0][:,2])
-#      x2,y2,z2=fn.center_of_mass(particle[1][0][:,0],particle[1][0][:,1],particle[1][0][:,2])
-#      S_dm[i]=np.linalg.norm([x-x2,y-y2,z-z2])#fn.dissociation(particle[0][0],np.array([[0,0,0],[0,0,0]]),rdmg=1)
-#      S_g[i]=np.linalg.norm()
-      
-      for j in range(10):
-        S_dist[i][j]=fn.dissociation(particle[0][0][(rdm<bins[j+1])],particle[1][0][(rg<bins[j+1])],rdmg=1)#accumulate within r
+#      for j in range(10):
+#        S_dist[i][j]=fn.dissociation(particle[0][0][(rdm<bins[j+1])],particle[1][0][(rg<bins[j+1])],rdmg=1)#accumulate within r
 #        S_nei[i][j]=fn.dissociation(particle_m[0][0][(rdm_m<bins[j+1])],particle_m[1][0][(rg_m<bins[j+1])],rdmg=1)#accumulate within r
 
 
@@ -96,13 +74,13 @@ for i in tqdm(range(len(S_g))):
 
 f=h5py.File(path+'S_compare.hdf5','a')
 
-#del f["S_50"]
+del f["S_50"]
 #del f["S_c_ub"]
-f.create_dataset("S_dist",data=S_dist)
+#f.create_dataset("S_dist",data=S_dist)
 #f.create_dataset("S_c_ub",data=S_rm)
 
 #f.create_dataset("S_g",data=S_g)
-#f.create_dataset("S_r50",data=S_50)
+f.create_dataset("S_50",data=S_50)
 #f.create_dataset("S_r100",data=S_100)
 #f.create_dataset("S_r200",data=S_200)
 
