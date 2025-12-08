@@ -158,35 +158,21 @@ from tqdm import tqdm
 #load the data
 path="/Users/24756376/data/Flamingo/L1000N1800/"
 
-f=h5py.File(path+'halos_ranked.hdf5','r')
-N_g=np.array(f['N_g'])
+f=h5py.File(path+'halos_0057_13_ranked.hdf5','r')
 
-N_dm=np.array(f['N_dm'])
-#N_s=np.array(f['N_s'])
-N_dm_c=np.array(f['N_dm_c'])
-N_g_c=np.array(f['N_g_c'])
-#N_s_c=np.array(f['N_s_c'])
+
 N_dm_region=np.array(f['N_dm_region'])
 N_g_region=np.array(f['N_g_region'])
-N_s_region=np.array(f['N_s_region'])
+#N_s_region=np.array(f['N_s_region'])
 
-N_dm_region_unbound=np.array(f['N_dm_region_unbound'])
-N_g_region_unbound=np.array(f['N_g_region_unbound'])
-#N_s_region_unbound=np.array(f['N_s_region_unbound'])
-halo_ids=np.array(f['id'])
-mass=np.array(f['mass'])
-N_s=np.zeros(len(N_dm))
-N_s_c=np.zeros(len(N_dm_c))
-#N_s_region=np.zeros(len(N_dm_c))
-#N_s_region_unbound=np.zeros(len(N_dm_c))
+
+N_s_region=np.zeros(len(N_dm_region))
+
 #103 halos with m>10**15, 659 for m>5*10**14
 m50=np.array(f['m50'])
-m200=np.array(f['m200'])
-centers=np.array([f["centers_x"],f["centers_y"],f["centers_z"]]).T
+centers=np.array([f["centers"]])
 r50=np.array(f["r50"])
-#r100=np.array(f["r100"])
-#ms100=np.array(f['mass_star_100kpc'])
-#ms3000=np.array(f['mass_star_1000kpc'])
+
 r200=np.array(f["r200"])
 
 f.close()
@@ -218,170 +204,8 @@ def check_boundry(Coord):#do this only after recentering
         
         
 
-def load_halo(id,dm=0,g=0,s=0):
-      """
-      Load halo data from the specified path and ID.
-      """
-   
-      arg=np.nonzero(halo_ids==float(id))[0]
-      
-    
-    
-    
-      arg=int(arg)
-      slide=[]
-      if dm==1:
-   
-        dm_s=int(np.sum(N_dm[0:arg]))
-        dm_e=int(np.sum(N_dm[0:arg+1]))
-        slide.append(slice(dm_s,dm_e))
-      
-      if g==1:
-        g_s=int(np.sum(N_g[0:arg]))
-        g_e=int(np.sum(N_g[0:arg+1]))
-        slide.append(slice(g_s,g_e))
-       
-      if s==1:
-        s_s=int(np.sum(N_s[0:arg]))
-        s_e=int(np.sum(N_s[0:arg+1]))
-        slide.append(slice(s_s,s_e))
-      
-      slide=np.array(slide).T
-      key=[]
-      if dm==1:
-        key.append('dm')
-      if g==1:
-        key.append('gas')
-      if s==1:
-        key.append('stars')
-      return key,slide#in the form of [dm,g,s,[[dm_s,dm_e],[g_s,g_e],[s_s,s_e]]]
-def load_cluster(id,dm=0,g=0,s=0):
-  
-   if id>0:
-      id=-int(id) 
-      print("warning: this is a satellite, loading the cluster it belongs to")
-   arg=np.nonzero(halo_ids[halo_ids<=0]==id)[0]
-   
-   arg=int(arg)
-   slide=[]
-   if dm==1:
-     
-   
-     dm_s=int(np.sum(N_dm_c[0:arg]))
-     dm_e=int(np.sum(N_dm_c[0:arg+1]))
-     slide.append(slice(dm_s,dm_e))
-    
-   #  print(arg)
-   if g==1:
-      g_s=int(np.sum(N_g_c[0:arg]))
-      g_e=int(np.sum(N_g_c[0:arg+1]))
-      slide.append(slice(g_s,g_e))
-   if s==1:
-      s_s=int(np.sum(N_s_c[0:arg]))
-      s_e=int(np.sum(N_s_c[0:arg+1]))
-      slide.append(slice(s_s,s_e))
 
-   slide=np.array(slide)
-   key=[]
-   if dm==1:
-       key.append('dm')
-   if g==1:
-       key.append('gas')
-   if s==1:
-       key.append('stars')
-   return key,slide
-
-def load_satellite(id,dm=0,g=0,s=0):
-  
-   if id>0:
-      id=-int(id) 
-      print("warning: this is a satellite, loading the cluster it belongs to")
-   arg=np.nonzero(halo_ids[halo_ids<=0]==id)[0]
-   
-   arg=int(arg)
-   slide=[]
-   if dm==1:
-     
-   
-     dm_s=int(np.sum(N_dm_c[0:arg])+N_dm[halo_ids==id])
-     dm_e=int(np.sum(N_dm_c[0:arg+1]))
-     slide.append(slice(dm_s,dm_e))
-    
-   #  print(arg)
-   if g==1:
-      g_s=int(np.sum(N_g_c[0:arg])+N_g[halo_ids==id])
-      g_e=int(np.sum(N_g_c[0:arg+1]))
-      slide.append(slice(g_s,g_e))
-   if s==1:
-      s_s=int(np.sum(N_s_c[0:arg])+N_s[halo_ids==id])
-      s_e=int(np.sum(N_s_c[0:arg+1]))
-      slide.append(slice(s_s,s_e))
-
-   slide=np.array(slide)
-   key=[]
-   if dm==1:
-       key.append('dm')
-   if g==1:
-       key.append('gas')
-   if s==1:
-       key.append('stars')
-   return key,slide
-# create the slice and then find al the particles in the slice, that save the spae by avoinding loading evertything  
-def load_particles(path,id,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="halo"):
-   
-   if mode=="halo":
-      keys,slides=load_halo(id,dm,g,s)
-      center=centers[int(np.nonzero(halo_ids==id)[0])]
-   elif mode=="cluster":
-      keys,slides=load_cluster(id,dm,g,s)
-      center=centers[halo_ids<=0][-int(id)]
-   elif mode=="satellite":
-      keys,slides=load_satellite(id,dm,g,s)
-      center=centers[halo_ids<=0][-int(id)]
-   else:
-      raise ValueError("What on earth do you want to do?")
-#   print(keys)
-   # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
-   f=h5py.File(path+'particles_ranked.hdf5','r')
-   dataset=[]
-   if dm==1:
-      
-      dataset.append(f['PartType1'])
-   if g==1:
-      
-      dataset.append(f['PartType0'])
-   if s==1:
-       
-      dataset.append(f['PartType2'])
-   particles=[]
-
-   for i in range(0,len(dataset)):
-      comp=[]
-      data=dataset[i]
-
-      
-      if coordinate==1:
-             
-            
-             Coord=np.array(data['Coordinates'][slides[i]])-center
-             Coord=check_boundry(Coord)
-             comp.append(Coord)
-             
-             
-      if extra_entry[keys[i]]!=[]:
-             for entry in extra_entry[keys[i]]:
-               
-                 entry_data=np.array(data[entry][slides[i]],dtype=np.float32)
-             
-                 comp.append(entry_data)
-#      comp=np.array(comp,dtype=np.float32)#in shape [Coord,entry1, entry2...]
-      
-      particles.append(comp)#particle in shape dm, g, s
-   f.close()      
-      
-   return particles
-
-def load_regions_all(id,dm,g,s):#id is negative
+def load_regions_unbound(id,dm,g,s):#id is negative
    arg=int(id)
    
    
@@ -398,11 +222,9 @@ def load_regions_all(id,dm,g,s):#id is negative
       g_s=int(np.sum(N_g_region[0:-arg]))
       g_e=int(np.sum(N_g_region[0:-arg+1]))
       slide.append(slice(g_s,g_e))
-     
    if s==1:
       s_s=int(np.sum(N_s_region[0:-arg]))
       s_e=int(np.sum(N_s_region[0:-arg+1]))
-      
       slide.append(slice(s_s,s_e))
 
    slide=np.array(slide)
@@ -414,54 +236,15 @@ def load_regions_all(id,dm,g,s):#id is negative
    if s==1:
        key.append('stars')
    return key,slide
+def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={}):#id>0
 
-def load_regions_unbound(id,dm,g,s):#id is negative
-   arg=int(id)
+   center=centers[int(id)]
    
-   
-   slide=[]
-   if dm==1:
-     
-   
-     dm_s=int(np.sum(N_dm_region_unbound[0:-arg]))
-     dm_e=int(np.sum(N_dm_region_unbound[0:-arg+1]))
-     slide.append(slice(dm_s,dm_e))
-    
-   #  print(arg)
-   if g==1:
-      g_s=int(np.sum(N_g_region_unbound[0:-arg]))
-      g_e=int(np.sum(N_g_region_unbound[0:-arg+1]))
-      slide.append(slice(g_s,g_e))
-   if s==1:
-      s_s=int(np.sum(N_s_region_unbound[0:-arg]))
-      s_e=int(np.sum(N_s_region_unbound[0:-arg+1]))
-      slide.append(slice(s_s,s_e))
 
-   slide=np.array(slide)
-   key=[]
-   if dm==1:
-       key.append('dm')
-   if g==1:
-       key.append('gas')
-   if s==1:
-       key.append('stars')
-   return key,slide
-def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="all"):
-   if id>0:#correct id input to 
-      id=-int(id) 
-   else:
-      id=int(id)
-   center=centers[halo_ids<=0][-int(id)]
-   if mode=="all":
-      keys,slides=load_regions_all(id,dm,g,s)
-      f=h5py.File(path+'particles_region_ranked.hdf5','r')
+   keys,slides=load_regions_unbound(id,dm,g,s)
+   f=h5py.File(path+'particles_region_13_0057.hdf5','r')
       
-   elif mode=="unbound":
-      keys,slides=load_regions_unbound(id,dm,g,s)
-      f=h5py.File(path+'particles_region_unbound_ranked.hdf5','r')
-      
-   else:
-      raise ValueError("What on earth do you want to do?")
+  
    # create the slice and then find all the particles in the slice, that save the space by avoiding loading everything
    dataset=[]
    
@@ -488,8 +271,8 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
    for i in range(0,len(dataset)):
       comp=[]
       data=dataset[i]
-      Coord=np.array(data['Coordinates'][slides[i]])-centers[halo_ids<=0][-id]
-#      
+      Coord=np.array(data['Coordinates'][slides[i]])-centers[id]
+#      print(Coord,centers[halo_ids<=0][-id]) 
       Coord=check_boundry(Coord)
       r2=Coord[:,0]**2+Coord[:,1]**2+Coord[:,2]**2
       
@@ -516,10 +299,3 @@ def load_regions(path,id,radius,dm=0,g=0,s=0,coordinate=1,extra_entry={},mode="a
    f.close()      
    
    return particles
-
-
-def half_mass_radius(particles):
-    rp=np.sqrt(np.sum(particles**2,axis=1))
-    rp=np.sort(rp)
-    arg=len(rp)//2-1
-    return 0.5*(rp[arg]+rp[arg+1])
