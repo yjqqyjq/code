@@ -1,0 +1,152 @@
+#cosma mass profile/S
+from scipy.spatial import KDTree
+import h5py
+import glob
+from tqdm import tqdm
+import numpy as np
+import joblib
+import tracemalloc
+from multiprocessing import Pool
+import sys
+def build_tree(k):
+   print("starting", k)
+   file=path+"snapshots/flamingo_0077/flamingo_0077."+str(k)+'.hdf5'
+   f = h5py.File(file, 'r')
+  
+
+   print(tracemalloc.get_traced_memory())
+  
+   dm = np.array(f['PartType1']['Coordinates'])
+   Tree_dm=KDTree(dm,boxsize=1000,leafsize=256)
+   dm=[]
+   index_dm=Tree_dm.query_ball_point(
+      centers,
+      r=3*r50,
+     
+    
+      
+   )
+   member_dm=[]
+   for i in tqdm(range (0,len(index_dm))):
+      if len(index_dm[i])>0:
+         member_dm.append(np.ones(len(index_dm[i]))*i)
+
+
+   
+   index_dm=np.concatenate(index_dm,dtype=np.int32).astype(np.int32)
+   member_dm=np.concatenate(member_dm).astype(np.int32)
+   Coord_dm=Tree_dm.data[index_dm]
+   Tree_dm=[]
+   print("dm Done")
+   g=np.array(f['PartType0']['Coordinates'])
+   Tree_g=KDTree(g,boxsize=1000,leafsize=256)
+   g=[]
+   f.close()
+   index_g=Tree_g.query_ball_point(
+      centers,
+      r=3*r50,
+     
+    
+      
+   )
+   member_g=[]
+   for i in tqdm(range (0,len(index_dm))):
+      if len(index_g[i])>0:
+         member_g.append(np.ones(len(index_g[i]))*i)
+
+
+   
+   index_g=np.concatenate(index_g).astype(np.int32)
+   
+   member_g=np.concatenate(member_g).astype(np.int32)
+   Coord_g=Tree_g.data[index_g]
+   Tree_g=[]
+   f=h5py.File(save+str(k)+'.hdf5', 'w')
+   dm=f.create_group("PartType0")
+   g=f.create_group("PartType1")
+   dm.create_dataset("index", data=index_dm)   
+   dm.create_dataset("member", data=member_dm)
+   dm.create_dataset("Coordinates", data=Coord_dm)
+   g.create_dataset("index", data=index_g)
+   g.create_dataset("member", data=member_g)
+   g.create_dataset("Coordinates", data=Coord_g)
+   f.close()
+   
+
+ 
+
+
+def query_s(k):
+   file=path+"snapshots/flamingo_0077/flamingo_0077."+str(k)+'.hdf5'
+   f = h5py.File(file, 'r')
+  
+
+   print(tracemalloc.get_traced_memory())
+  
+   s = np.array(f['PartType4']['Coordinates'])
+   Tree_s=KDTree(s,boxsize=1000,leafsize=256)
+   s=[]
+   index_s=Tree_s.query_ball_point(
+      centers,
+      r=3*r50,
+     
+    
+      
+   )
+   member_s=[]
+   for i in tqdm(range (0,len(index_s))):
+      if len(index_s[i])>0:
+         member_s.append(np.ones(len(index_s[i]))*i)
+
+
+   
+   index_s=np.concatenate(index_s,dtype=np.int32).astype(np.int32)
+   member_s=np.concatenate(member_s).astype(np.int32)
+   Coord_s=Tree_s.data[index_s]
+   Tree_s=[]
+   print("star Done")
+def test(k):
+   print("starting", k)
+   file=path+"snapshots/flamingo_0077."+str(k)+'.hdf5'
+   f = h5py.File(file, 'r')
+  
+
+   print(tracemalloc.get_traced_memory())
+
+   g=np.asarray(f['PartType4']['Coordinates'],dtype=np.float32)
+
+   Tree_g=KDTree(g,boxsize=1000,leafsize=10, copy_data=False)
+   print(Tree_g.data[0])
+   g=[]
+   f.close()
+   print(tracemalloc.get_traced_memory())
+   
+   joblib.dump(Tree_g, path+"Trees/"+str(k)+'s.pkl')#,compress=('gzip', 3))
+   Tree_g=[]
+   print("Done")
+   
+
+tracemalloc.start()
+path="/cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/"
+data_dir="/cosma8/data/do012/dc-yang9/data/Flamingo/L1000N1800/"
+    
+    
+save=data_dir+"flamingo_0077/"
+    
+f=h5py.File(save+"halos_central_12.hdf5", 'r')
+centers=np.array([f['centers']])
+r50=np.array(f['r50'])
+    
+f.close()
+
+k=sys.argv[1]
+build_tree(int(k))
+ 
+
+      
+
+   
+ 
+    
+
+tracemalloc.stop()

@@ -156,7 +156,7 @@ from tqdm import tqdm
 
 #work with SOAP
 #load the data
-path="/Users/24756376/data/Flamingo/L1000N1800/"
+path="/Users/24756376/data/Flamingo/L1000N1800_NoCool/"
 
 f=h5py.File(path+'halos_13_ranked.hdf5','r')
 N_g=np.array(f['N_g'])

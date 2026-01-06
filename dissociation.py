@@ -5,7 +5,7 @@ import unyt
 
 #import Falco_S as fd
 import matplotlib.pyplot as plt
-import functions as fn
+import functions_13 as fn
 
 import h5py
 from tqdm import tqdm
@@ -34,13 +34,11 @@ S_dist=np.zeros((len(halo_ids[halo_ids<=0]),len(bin)))
 S_50=np.zeros(len(halo_ids[halo_ids<=0]))
 S_rm=np.zeros(len(halo_ids[halo_ids<=0]))
 for i in tqdm(range(len(S_50))):
-      particle=fn.load_regions(path,main_id[i].astype(int),main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="all")
+      particle=fn.load_regions(path,main_id[i].astype(int),main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]})
 #      particle_ub=fn.load_regions(path,main_id[i].astype(int),1*main_r200[i],dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="unbound")
    
 #      particle_c=fn.load_particles(path,main_id[i].astype(int),dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="halo")
-#      rdm=np.sqrt(particle[0][0][:,0]**2+particle[0][0][:,1]**2+particle[0][0][:,2]**2)/main_r200[i]
       
-#      rg=np.sqrt(particle[1][0][:,0]**2+particle[1][0][:,1]**2+particle[1][0][:,2]**2)/main_r200[i]
 #      particle_c=[[particle_c[0][0][rdm<1]],[particle_c[1][0][rg<1]]]
 
 #      particle_m=fn.load_particles(path,main_id[i].astype(int),dm=1,g=1,s=0,coordinate=1,extra_entry={"dm":[],"gas":[],"stars":[]},mode="cluster")
@@ -52,8 +50,8 @@ for i in tqdm(range(len(S_50))):
 #      rs=np.sort(rs)
 #      print(np.percentile(rs,90))
 
-
-      S_50[i]=fn.dissociation(particle[0][0],particle[1][0],rdmg=1)
+      
+#      S_50[i]=fn.dissociation(particle[0][0],particle[1][0],rdmg=1)
 
       
 #      for j in range(10):

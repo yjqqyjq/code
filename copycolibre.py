@@ -4,7 +4,7 @@ import time
 # Details for SSH connection to COSMA
 ##### CHANGE THIS
 uname="dc-yang9"
-password="1qaz2wsx#EDC"
+password="fwefefew"
 fpath_cosma='/cosma8/data/dp004/flamingo/Runs/L2800N5040/HYDRO_FIDUCIAL'
 fpath_hyades='/mnt/su3-pro/L2800N5040'
 
