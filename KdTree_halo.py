@@ -8,18 +8,22 @@ import joblib
 import tracemalloc
 from multiprocessing import Pool
 
-dir="/Users/24756376/data/Flamingo/L1000N0900/halos_cen13_ranked.hdf5"
-data_dir="/Users/24756376/data/Flamingo/L1000N0900/Trees/"
+dir="/Users/24756376/data/Flamingo/L1000N1800_NoCool/halos_ranked.hdf5"
+data_dir="/Users/24756376/data/Flamingo/L1000N1800_NoCool/Trees/"
 def build_tree():
    print("starting")
    file=dir#+str(k)+'.hdf5'
    f = h5py.File(file, 'r')
-   halos = np.array([f['center_x'],f['center_y'],f['center_z']]).T
+
+   halos = np.array([f['centers_x'],f['centers_y'],f['centers_z']]).T
    f.close()
    Tree=KDTree(halos)
-   
-   print(tracemalloc.get_traced_memory())
-   joblib.dump(Tree, data_dir+'halos.pkl')
+   node1=Tree.data[100]
+   index2=Tree.query(node1,k=10)[1]
+   node2=Tree.data[index2[-1]]
+   print(node1,node2,np.sqrt(np.sum(node1-node2)**2))
+#   print(tracemalloc.get_traced_memory())
+#   joblib.dump(Tree, data_dir+'halos.pkl')
 
    print("Done")
 
@@ -63,16 +67,16 @@ def query_tree():
    print(tracemalloc.get_traced_memory())
 tracemalloc.start()
 
-f=h5py.File("/Users/24756376/data/Flamingo/L1000N0900/halos_ranked.hdf5", 'r')
+f=h5py.File("/Users/24756376/data/Flamingo/L1000N1800/halos_ranked.hdf5", 'r')
 centers=np.array([f['centers_x'],f['centers_y'],f['centers_z']]).T
 ids=np.array(f['id'])
 centers = centers[ids <= 0]
 r200=np.array(f['r200'])[ids <= 0]
 mass14=np.array(f['mass'])[ids <= 0]
 f.close()
-
-i,d=query_tree()
-
+build_tree()
+#i,d=query_tree()
+'''
 tracemalloc.stop()
 d=d/r200
 print(np.max(d))
@@ -81,3 +85,4 @@ f=h5py.File("/Users/24756376/data/Flamingo/L1000N0900/neighbour.hdf5", 'w')
 f.create_dataset("index",data=i)
 f.create_dataset("distance",data=d)
 f.close()
+'''

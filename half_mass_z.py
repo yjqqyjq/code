@@ -11,22 +11,34 @@ from multiprocessing import Pool
 import subprocess
 import sys
 def load_mass(i):
+     f=h5py.File(dir+str(i)+".hdf5")
+     print(i)
+     track=np.array(f["InputHalos"]["HBTplus"]['TrackId'],dtype=int)
+
+     in_z0=np.isin(track,track_z0_ranked,assume_unique=True)
+     track_z=track[in_z0]
+     args_z=np.argsort(track_z)
+     track_z_ranked=track_z[args_z]
+
+     in_z=np.isin(track_z0_ranked,track_z_ranked,assume_unique=True)
+     
+
+     m200=np.array(f["SO"]['200_crit']['TotalMass'])[in_z0][args_z]
+     m200_z=np.where(in_z,m200,0)
+
+     f.close()
+     
+     return m200_z
+def test(i):
+     print(i)
      f=h5py.File(dir+str(i*2-1)+".hdf5")
 
      halo_ids=np.array(f["InputHalos"]["HBTplus"]['TrackId'])
-     mask=np.isin(halo_ids,ids,assume_unique=True)
-     m50=np.array(f["SO"]['50_crit']['TotalMass'])[mask]
-     halo_ids=halo_ids[mask]
-     mask_id=np.argsort(halo_ids)[args_rev]
-     m50=m50[mask_id]
-     return m50
-def test(i):
-     f=h5py.File(dir+str(i*2-1)+".hdf5")
-     halo_ids=np.array(f["InputHalos"]["HBTplus"]['TrackId'])
-     host_ids=np.array(f["InputHalos"]["HostHaloIndex"])
+     host_ids=np.array(f["BoundSubhalo"]["TotalMass"])
      print(host_ids[halo_ids==id])
      f.close()
      
+
     
      
 def load_redshift(i):#To z=3
@@ -35,25 +47,47 @@ def load_redshift(i):#To z=3
     print(z)
 
 if __name__ == '__main__':
+
+
+
     dir="/cosma8/data/dp004/flamingo/Runs/L1000N1800/HYDRO_FIDUCIAL/SOAP-HBT/halo_properties_00"
 
     save="/cosma8/data/do012/dc-yang9/data/Flamingo/L1000N1800/"
-    f=h5py.File(save+"central_halos.hdf5","r")
 
-    ids=np.array(f['Track_id'])
-    id=ids[2]
 
-    args_id=np.argsort(ids)
-    args_rev=np.argsort(args_id)
+    f=h5py.File(save+"flamingo_0077/halos_central_12.hdf5","r")
+
+
+    track_z0=np.array(f['track_id'],dtype=int)
+    m200_z0=np.array(f['m200'],dtype=int)
+
+
     f.close()
-    with Pool(1) as p: # Create a pool with 5 worker processes
+ 
+    args_z0=np.argsort(track_z0)
+    args_rev_z0=np.argsort(args_z0)
+    track_z0_ranked=track_z0[args_z0]
+    
+    with Pool(4) as p: # Create a pool with 4 worker processes
 
 
-       halo_mass=p.map(test, range(25,40))
-    halo_mass=np.array(halo_mass)
 
-    print(halo_mass)
-    f=h5py.File(save+"mass_evolution.hdf5","w")
-    f.create_dataset("m50",data=halo_mass)
+
+
+       halo_mass=p.map(load_mass, range(76,77))
+    halo_mass=np.array(halo_mass)[:,args_rev_z0]
+
+
+    print(halo_mass[0])
+
+
+
+    f=h5py.File(save+"mass_evolution_12.hdf5","w")
+    
+
+#    del f["m50"]
+    f.create_dataset("m200",data=halo_mass)
+
     f.close()
        
+
